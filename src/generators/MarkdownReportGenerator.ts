@@ -51,6 +51,9 @@ export class MarkdownReportGenerator {
     md += `- **Стратегия:** ${info.strategy}\n`;
     md += `- **Биржа:** ${info.exchange}\n`;
     md += `- **Режим торговли:** ${info.tradingMode.toUpperCase()}\n`;
+    if (info.initialCapital) {
+      md += `- **Начальный капитал:** ${info.initialCapital.toFixed(2)} USDT\n`;
+    }
     md += `- **Начало торговли:** ${this.dateFormatter.formatDate(info.firstTradeDate)}\n\n`;
     return md;
   }
@@ -75,7 +78,9 @@ export class MarkdownReportGenerator {
       md += `    - *(Какую долю от прибыли прибыльной сделки в среднем "съедает" комиссия)*\n`;
     }
     md += `- **Profit Factor:** ${stats.profitFactor.toFixed(2)}\n`;
+    md += `    - *(Отношение общей прибыли к общему убытку. Значение > 1 обычно говорит о прибыльности)*\n`;
     md += `- **Expectancy:** ${stats.expectancy.toFixed(2)} USDT\n`;
+    md += `    - *(Средняя прибыль на сделку с учетом винрейта. Показывает, сколько можно ожидать от одной сделки)*\n`;
     if (stats.avgProfitPerHourPct !== undefined) {
       md += `- **Средняя прибыль в час:** ${stats.avgProfitPerHourPct.toFixed(2)}%\n`;
       md += `    - *(Показывает эффективность сделок по отношению к их длительности)*\n`;
@@ -102,7 +107,8 @@ export class MarkdownReportGenerator {
     }
 
     if (stats.drawdown) {
-      md += `- **Макс. просадка:** ${stats.drawdown.maxDrawdown.toFixed(2)}% (${stats.drawdown.maxDrawdownAbs.toFixed(2)} USDT)\n\n`;
+      md += `- **Макс. просадка:** ${stats.drawdown.maxDrawdown.toFixed(2)}% (${stats.drawdown.maxDrawdownAbs.toFixed(2)} USDT)\n`;
+      md += `    - *(Максимальное падение баланса от его пикового значения. Показывает исторический риск стратегии)*\n\n`;
     } else {
       md += "\n";
     }

@@ -2,6 +2,7 @@ import { DatabaseService } from "./services/DatabaseService";
 import { TradeAnalyzer } from "./analyzers/TradeAnalyzer";
 import { MarkdownReportGenerator } from "./generators/MarkdownReportGenerator";
 import { DateFormatter } from "./formatters/DateFormatter";
+import { config } from "./config";
 
 /**
  * Главная функция приложения
@@ -9,9 +10,7 @@ import { DateFormatter } from "./formatters/DateFormatter";
  * Следует принципу Dependency Injection - создает зависимости и передает их в классы
  */
 async function main() {
-  const dbPath = "tradesv3.sqlite";
-  const outputPath = "trades_report.md";
-  const initialCapital = 9900; // Начальный капитал для расчета просадки
+  const { dbPath, reportPath: outputPath, initialCapital } = config;
 
   // Создание экземпляров сервисов (Dependency Injection)
   const databaseService = new DatabaseService(dbPath);
@@ -23,7 +22,7 @@ async function main() {
     // Получение данных
     console.log("📊 Загрузка сделок из базы данных...");
     const trades = databaseService.getAllTrades();
-    const tradingInfo = databaseService.getTradingInfo();
+    const tradingInfoFromDb = databaseService.getTradingInfo();
     const openTrades = trades.filter((t) => t.is_open === 1);
     const closedTrades = trades.filter((t) => t.is_open === 0);
     console.log(
@@ -76,6 +75,12 @@ async function main() {
     console.log(`- Среднее проскальзывание: ${reportStatistics.averageSlippage.toFixed(2)}`);
     console.log('------------------------');
 
+
+    // Формируем полный объект с информацией о торговле
+    const tradingInfo = {
+      ...tradingInfoFromDb,
+      initialCapital,
+    };
 
     // Генерация отчета
     console.log("📝 Генерация отчета...");

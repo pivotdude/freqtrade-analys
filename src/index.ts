@@ -45,11 +45,17 @@ async function main() {
       closedTrades,
       initialCapital,
     );
+    const { sharpeRatio, sortinoRatio } = tradeAnalyzer.calculateSharpeAndSortinoRatios(
+      closedTrades,
+      initialCapital,
+    );
     
     // Создаем отдельный объект для отчета, чтобы представить статистику в желаемом формате
     const reportStatistics = {
       ...statistics, // Базовые статистики по закрытым сделкам
       drawdown: drawdown, // Добавляем данные по просадке
+      sharpeRatio,
+      sortinoRatio,
     };
 
     // Вывод ключевых метрик в консоль
@@ -63,6 +69,8 @@ async function main() {
     if (reportStatistics.drawdown) {
       console.log(`- Макс. просадка: ${reportStatistics.drawdown.maxDrawdown.toFixed(2)}% (${reportStatistics.drawdown.maxDrawdownAbs.toFixed(2)})`);
     }
+    console.log(`- Sharpe Ratio: ${reportStatistics.sharpeRatio.toFixed(3)}`);
+    console.log(`- Sortino Ratio: ${reportStatistics.sortinoRatio.toFixed(3)}`);
     console.log('------------------------');
 
 

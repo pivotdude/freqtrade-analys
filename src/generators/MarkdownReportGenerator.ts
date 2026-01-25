@@ -70,6 +70,15 @@ export class MarkdownReportGenerator {
     md += `- **Profit Factor:** ${stats.profitFactor.toFixed(2)}\n`;
     md += `- **Expectancy:** ${stats.expectancy.toFixed(2)} USDT\n`;
 
+    if (stats.sharpeRatio !== undefined) {
+      md += `- **Sharpe Ratio:** ${stats.sharpeRatio.toFixed(3)}\n`;
+      md += `    - *(Отношение средней доходности к её риску (волатильности). Чем выше, тем лучше)*\n`
+    }
+    if (stats.sortinoRatio !== undefined) {
+      md += `- **Sortino Ratio:** ${stats.sortinoRatio.toFixed(3)}\n`;
+      md += `    - *(Похож на Sharpe, но учитывает только риск "плохой" волатильности (убытков). Чем выше, тем лучше)*\n`
+    }
+
     if (stats.drawdown) {
       md += `- **Макс. просадка:** ${stats.drawdown.maxDrawdown.toFixed(2)}% (${stats.drawdown.maxDrawdownAbs.toFixed(2)} USDT)\n\n`;
     } else {

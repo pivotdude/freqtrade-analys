@@ -84,6 +84,8 @@ export interface TradeStatistics {
   profitFactor: number;
   expectancy: number;
   drawdown?: Drawdown;
+  sharpeRatio?: number;
+  sortinoRatio?: number;
 }
 
 /**

@@ -144,4 +144,67 @@ export class TradeAnalyzer {
     const startIndex = Math.max(0, sorted.length - count);
     return sorted.slice(startIndex).reverse();
   }
+
+  /**
+   * Рассчитывает коэффициенты Шарпа и Сортино.
+   * Расчет основан на доходности каждой отдельной сделки, а не на временном ряде эквити.
+   * @param trades Массив закрытых сделок.
+   * @param initialCapital Начальный капитал.
+   * @param riskFreeRate Безрисковая ставка для расчета. По умолчанию 0.
+   * @returns Объект с коэффициентами.
+   */
+  calculateSharpeAndSortinoRatios(trades: Trade[], initialCapital: number, riskFreeRate: number = 0): { sharpeRatio: number; sortinoRatio: number; } {
+    if (trades.length < 2) {
+      return { sharpeRatio: 0, sortinoRatio: 0 };
+    }
+
+    const sortedTrades = [...trades].sort((a, b) => {
+      if (!a.close_date || !b.close_date) return 0;
+      return new Date(a.close_date).getTime() - new Date(b.close_date).getTime();
+    });
+
+    const returns: number[] = [];
+    let balance = initialCapital;
+
+    for (const trade of sortedTrades) {
+      const profit = trade.close_profit_abs || 0;
+      // Доходность считаем относительно баланса *перед* закрытием этой сделки
+      const tradeReturn = balance > 0 ? profit / balance : 0;
+      returns.push(tradeReturn);
+      // Обновляем баланс
+      balance += profit;
+    }
+
+    const avgReturn = this._calculateAverage(returns);
+    const stdDev = this._calculateStdDev(returns, avgReturn);
+    const downsideStdDev = this._calculateDownsideStdDev(returns, riskFreeRate);
+
+    const sharpeRatio = stdDev > 0 ? (avgReturn - riskFreeRate) / stdDev : 0;
+    const sortinoRatio = downsideStdDev > 0 ? (avgReturn - riskFreeRate) / downsideStdDev : 0;
+
+    return { sharpeRatio, sortinoRatio };
+  }
+
+  private _calculateAverage(numbers: number[]): number {
+    if (numbers.length === 0) return 0;
+    const sum = numbers.reduce((acc, val) => acc + val, 0);
+    return sum / numbers.length;
+  }
+
+  private _calculateStdDev(numbers: number[], avg: number): number {
+    if (numbers.length < 2) return 0;
+    const variance = numbers.reduce((acc, val) => acc + Math.pow(val - avg, 2), 0) / (numbers.length -1);
+    return Math.sqrt(variance);
+  }
+
+  private _calculateDownsideStdDev(numbers: number[], target: number): number {
+    const negativeReturns = numbers.filter(r => r < target);
+    if (negativeReturns.length < 2) return 0;
+
+    const squaredDiffs = negativeReturns.map(r => Math.pow(r - target, 2));
+    const sumOfSquaredDiffs = squaredDiffs.reduce((acc, val) => acc + val, 0);
+
+    // Используем N-1 для несмещенной оценки, как и в общем стандартном отклонении
+    return Math.sqrt(sumOfSquaredDiffs / (negativeReturns.length - 1));
+  }
 }

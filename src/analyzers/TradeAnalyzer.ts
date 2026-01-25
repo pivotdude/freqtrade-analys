@@ -53,6 +53,22 @@ export class TradeAnalyzer {
 
     const averageSlippage = slippageCount > 0 ? totalSlippage / slippageCount : 0;
 
+    let totalProfitPerHourPct = 0;
+    let tradesWithDuration = 0;
+
+    for (const trade of trades) {
+        if (trade.close_date && trade.close_profit) {
+            const duration_minutes = (new Date(trade.close_date).getTime() - new Date(trade.open_date).getTime()) / 60000;
+            if (duration_minutes > 0) {
+                const profit_per_hour_pct = (trade.close_profit * 100 / duration_minutes) * 60;
+                totalProfitPerHourPct += profit_per_hour_pct;
+                tradesWithDuration++;
+            }
+        }
+    }
+
+    const avgProfitPerHourPct = tradesWithDuration > 0 ? totalProfitPerHourPct / tradesWithDuration : 0;
+
     const { maxOpenTrades, maxExposureAmount } = this._calculateExposure(trades);
 
     return {
@@ -68,7 +84,8 @@ export class TradeAnalyzer {
       maxOpenTrades,
       maxExposureAmount,
       totalSlippage,
-      averageSlippage
+      averageSlippage,
+      avgProfitPerHourPct
     };
   }
 

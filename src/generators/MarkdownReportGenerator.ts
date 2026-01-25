@@ -72,6 +72,10 @@ export class MarkdownReportGenerator {
     md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n`;
     md += `- **Profit Factor:** ${stats.profitFactor.toFixed(2)}\n`;
     md += `- **Expectancy:** ${stats.expectancy.toFixed(2)} USDT\n`;
+    if (stats.avgProfitPerHourPct !== undefined) {
+      md += `- **Средняя прибыль в час:** ${stats.avgProfitPerHourPct.toFixed(2)}%\n`;
+      md += `    - *(Показывает эффективность сделок по отношению к их длительности)*\n`;
+    }
     if (stats.maxOpenTrades !== undefined) {
       md += `- **Макс. одновременно открытых сделок:** ${stats.maxOpenTrades}\n`;
     }
@@ -153,6 +157,13 @@ export class MarkdownReportGenerator {
       const totalFee = (trade.fee_open_cost || 0) + (trade.fee_close_cost || 0);
       md += `- **Комиссия:** ${totalFee.toFixed(2)} USDT (вход: ${(trade.fee_open_cost || 0).toFixed(2)}, выход: ${(trade.fee_close_cost || 0).toFixed(2)})\n`;
       md += `- **Чистая прибыль:** ${(profitAbs - totalFee).toFixed(2)} USDT\n`;
+
+      const duration_minutes = trade.close_date ? (new Date(trade.close_date).getTime() - new Date(trade.open_date).getTime()) / 60000 : 0;
+      if (duration_minutes > 0) {
+        const profit_per_hour_pct = ((trade.close_profit || 0) * 100 / duration_minutes) * 60;
+        md += `- **Эффективность (Профит в час):** ${profit_per_hour_pct.toFixed(2)}%\n`;
+      }
+
       md += `- **Причина выхода:** ${trade.exit_reason || "-"}\n`;
     } else {
       const openFee = trade.fee_open_cost || 0;

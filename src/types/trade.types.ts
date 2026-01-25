@@ -90,6 +90,7 @@ export interface TradeStatistics {
   maxExposureAmount?: number;
   totalSlippage?: number;
   averageSlippage?: number;
+  avgProfitPerHourPct?: number;
 }
 
 /**

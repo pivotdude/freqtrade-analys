@@ -109,3 +109,20 @@ export interface PairStatisticsReport {
   pair: string;
   stats: PairStatistics;
 }
+
+/**
+ * Статистика по тегам входа
+ */
+export interface EnterTagStatistics {
+  count: number;
+  wins: number;
+  totalProfit: number;
+}
+
+/**
+ * Статистика по тегам для отчета
+ */
+export interface EnterTagStatisticsReport {
+  tag: string;
+  stats: EnterTagStatistics;
+}

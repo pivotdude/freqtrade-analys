@@ -39,6 +39,7 @@ async function main() {
     console.log("🔍 Анализ сделок...");
     const statistics = tradeAnalyzer.calculateStatistics(closedTrades);
     const pairStats = tradeAnalyzer.calculatePairStatistics(closedTrades);
+    const tagStats = tradeAnalyzer.calculateEnterTagStatistics(closedTrades);
     const topProfitable = tradeAnalyzer.getTopProfitable(closedTrades, 3);
     const topLosing = tradeAnalyzer.getTopLosing(closedTrades, 3);
     const drawdown = tradeAnalyzer.calculateMaxDrawdown(
@@ -82,6 +83,7 @@ async function main() {
       trades,
       reportStatistics,
       pairStats,
+      tagStats,
       topProfitable,
       topLosing,
       tradingInfo

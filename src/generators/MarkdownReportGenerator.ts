@@ -2,6 +2,7 @@ import type {
   Trade,
   TradeStatistics,
   PairStatisticsReport,
+  EnterTagStatisticsReport,
   TradingInfo,
 } from "../types/trade.types";
 import { DateFormatter } from "../formatters/DateFormatter";
@@ -25,6 +26,7 @@ export class MarkdownReportGenerator {
     trades: Trade[],
     statistics: TradeStatistics,
     pairStats: PairStatisticsReport[],
+    tagStats: EnterTagStatisticsReport[],
     topProfitable: Trade[],
     topLosing: Trade[],
     tradingInfo: TradingInfo,
@@ -35,6 +37,7 @@ export class MarkdownReportGenerator {
     md += this.generateStatisticsSection(statistics);
     md += this.generateTradesWithOrders(trades);
     md += this.generatePairStatisticsSection(pairStats);
+    md += this.generateEnterTagStatisticsSection(tagStats);
     md += this.generateTopTradesSection(topProfitable, topLosing);
 
     return md;
@@ -206,6 +209,29 @@ export class MarkdownReportGenerator {
 
     return md + "\n";
   }
+
+  /**
+   * Генерирует секцию со статистикой по тегам входа
+   */
+  private generateEnterTagStatisticsSection(
+    tagStats: EnterTagStatisticsReport[],
+  ): string {
+    if (tagStats.length === 0) {
+      return "";
+    }
+
+    let md = "## Анализ по тегам входа\n\n";
+    md += "| Тег | Сделок | Прибыльных | Win Rate | Прибыль |\n";
+    md += "|:----|:-------|:-----------|:---------|:--------|\n";
+
+    for (const { tag, stats } of tagStats) {
+      const winRate = stats.count > 0 ? (stats.wins / stats.count) * 100 : 0;
+      md += `| ${tag} | ${stats.count} | ${stats.wins} | ${winRate.toFixed(1)}% | ${stats.totalProfit.toFixed(2)} USDT |\n`;
+    }
+
+    return md + "\n";
+  }
+
 
   /**
    * Генерирует секцию с лучшими и худшими сделками

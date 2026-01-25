@@ -1,4 +1,4 @@
-import type { Trade, TradeStatistics, PairStatistics, PairStatisticsReport, Drawdown } from "../types/trade.types";
+import type { Trade, TradeStatistics, PairStatistics, PairStatisticsReport, Drawdown, EnterTagStatistics, EnterTagStatisticsReport } from "../types/trade.types";
 
 /**
  * Анализатор сделок
@@ -95,6 +95,40 @@ export class TradeAnalyzer {
       stats
     }));
   }
+
+  /**
+   * Группирует статистику по тегам входа
+   * @param trades Массив сделок
+   * @returns Массив статистики по тегам
+   */
+  calculateEnterTagStatistics(trades: Trade[]): EnterTagStatisticsReport[] {
+    const tagStatsMap = new Map<string, EnterTagStatistics>();
+
+    for (const trade of trades) {
+      if (!trade.enter_tag) continue;
+
+      // Freqtrade может иметь несколько тегов, разделенных пробелом
+      const tags = trade.enter_tag.split(' ');
+
+      for (const tag of tags) {
+        if (!tag) continue; // Пропускаем пустые теги, если есть двойные пробелы
+
+        const stats = tagStatsMap.get(tag) || { count: 0, wins: 0, totalProfit: 0 };
+        stats.count++;
+        stats.totalProfit += trade.close_profit_abs || 0;
+        if ((trade.close_profit_abs || 0) > 0) {
+          stats.wins++;
+        }
+        tagStatsMap.set(tag, stats);
+      }
+    }
+
+    return Array.from(tagStatsMap.entries()).map(([tag, stats]) => ({
+      tag,
+      stats
+    })).sort((a, b) => b.stats.count - a.stats.count); // Сортируем по количеству сделок
+  }
+
 
   /**
    * Рассчитывает максимальную просадку по балансу.

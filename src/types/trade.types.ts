@@ -86,6 +86,8 @@ export interface TradeStatistics {
   drawdown?: Drawdown;
   sharpeRatio?: number;
   sortinoRatio?: number;
+  maxOpenTrades?: number;
+  maxExposureAmount?: number;
 }
 
 /**

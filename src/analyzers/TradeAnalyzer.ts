@@ -32,6 +32,8 @@ export class TradeAnalyzer {
     const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : 0;
     const totalFees = trades.reduce((sum, t) => sum + (t.fee_open_cost || 0) + (t.fee_close_cost || 0), 0);
 
+    const { maxOpenTrades, maxExposureAmount } = this._calculateExposure(trades);
+
     return {
       totalTrades,
       profitableTrades,
@@ -41,7 +43,9 @@ export class TradeAnalyzer {
       winRate,
       totalFees,
       profitFactor,
-      expectancy
+      expectancy,
+      maxOpenTrades,
+      maxExposureAmount
     };
   }
 
@@ -206,5 +210,58 @@ export class TradeAnalyzer {
 
     // Используем N-1 для несмещенной оценки, как и в общем стандартном отклонении
     return Math.sqrt(sumOfSquaredDiffs / (negativeReturns.length - 1));
+  }
+
+  /**
+   * Рассчитывает максимальное количество одновременно открытых сделок
+   * и максимальную сумму задействованного капитала (exposure).
+   * @param trades Массив сделок.
+   * @returns Объект с максимальным количеством открытых сделок и максимальным капиталом.
+   */
+  private _calculateExposure(trades: Trade[]): { maxOpenTrades: number; maxExposureAmount: number } {
+    interface TradeEvent {
+      date: Date;
+      type: 'open' | 'close';
+      stake: number;
+    }
+
+    const events: TradeEvent[] = [];
+
+    for (const trade of trades) {
+      events.push({ date: new Date(trade.open_date), type: 'open', stake: trade.stake_amount });
+      if (trade.close_date) {
+        events.push({ date: new Date(trade.close_date), type: 'close', stake: trade.stake_amount });
+      }
+    }
+
+    // Сортируем события. Сначала по дате. Если даты равны, "close" идет раньше "open".
+    events.sort((a, b) => {
+      if (a.date.getTime() === b.date.getTime()) {
+        if (a.type === 'close' && b.type === 'open') return -1; // close before open
+        if (a.type === 'open' && b.type === 'close') return 1;  // open after close
+        return 0;
+      }
+      return a.date.getTime() - b.date.getTime();
+    });
+
+    let currentOpenTrades = 0;
+    let currentExposureAmount = 0;
+    let maxOpenTrades = 0;
+    let maxExposureAmount = 0;
+
+    for (const event of events) {
+      if (event.type === 'open') {
+        currentOpenTrades++;
+        currentExposureAmount += event.stake;
+      } else { // event.type === 'close'
+        currentOpenTrades--;
+        currentExposureAmount -= event.stake;
+      }
+
+      maxOpenTrades = Math.max(maxOpenTrades, currentOpenTrades);
+      maxExposureAmount = Math.max(maxExposureAmount, currentExposureAmount);
+    }
+
+    return { maxOpenTrades, maxExposureAmount };
   }
 }

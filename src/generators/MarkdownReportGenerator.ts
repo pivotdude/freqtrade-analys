@@ -69,6 +69,12 @@ export class MarkdownReportGenerator {
     md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n`;
     md += `- **Profit Factor:** ${stats.profitFactor.toFixed(2)}\n`;
     md += `- **Expectancy:** ${stats.expectancy.toFixed(2)} USDT\n`;
+    if (stats.maxOpenTrades !== undefined) {
+      md += `- **Макс. одновременно открытых сделок:** ${stats.maxOpenTrades}\n`;
+    }
+    if (stats.maxExposureAmount !== undefined) {
+      md += `- **Макс. капитал в сделках:** ${stats.maxExposureAmount.toFixed(2)} USDT\n`;
+    }
 
     if (stats.sharpeRatio !== undefined) {
       md += `- **Sharpe Ratio:** ${stats.sharpeRatio.toFixed(3)}\n`;

@@ -85,6 +85,11 @@ export class MarkdownReportGenerator {
       md += `    - *(Похож на Sharpe, но учитывает только риск "плохой" волатильности (убытков). Чем выше, тем лучше)*\n`
     }
 
+    if (stats.averageSlippage !== undefined) {
+      md += `- **Среднее проскальзывание (Slippage):** ${stats.averageSlippage.toFixed(4)}%\n`;
+      md += `    - *(Разница между ценой в заявке и реальной ценой исполнения. Положительное значение - невыгодно.)*\n`;
+    }
+
     if (stats.drawdown) {
       md += `- **Макс. просадка:** ${stats.drawdown.maxDrawdown.toFixed(2)}% (${stats.drawdown.maxDrawdownAbs.toFixed(2)} USDT)\n\n`;
     } else {

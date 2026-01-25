@@ -32,6 +32,27 @@ export class TradeAnalyzer {
     const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : 0;
     const totalFees = trades.reduce((sum, t) => sum + (t.fee_open_cost || 0) + (t.fee_close_cost || 0), 0);
 
+    let totalSlippage = 0;
+    let slippageCount = 0;
+
+    for (const trade of trades) {
+      if (trade.orders) {
+        for (const order of trade.orders) {
+          // Assuming 'buy' orders are relevant for slippage on entry
+          // ft_order_side could be 'buy' or 'sell'
+          // We are interested in the slippage when opening a position, so 'buy' for long, 'sell' for short (if applicable)
+          // For simplicity, let's consider 'buy' for now as typical entry
+          if (order.ft_order_side === 'buy' && order.ft_price && order.average && order.ft_price > 0) {
+            const slippage = ((order.average - order.ft_price) / order.ft_price) * 100;
+            totalSlippage += slippage;
+            slippageCount++;
+          }
+        }
+      }
+    }
+
+    const averageSlippage = slippageCount > 0 ? totalSlippage / slippageCount : 0;
+
     const { maxOpenTrades, maxExposureAmount } = this._calculateExposure(trades);
 
     return {
@@ -45,7 +66,9 @@ export class TradeAnalyzer {
       profitFactor,
       expectancy,
       maxOpenTrades,
-      maxExposureAmount
+      maxExposureAmount,
+      totalSlippage,
+      averageSlippage
     };
   }
 

@@ -71,6 +71,8 @@ async function main() {
     }
     console.log(`- Sharpe Ratio: ${reportStatistics.sharpeRatio.toFixed(3)}`);
     console.log(`- Sortino Ratio: ${reportStatistics.sortinoRatio.toFixed(3)}`);
+    console.log(`- Общее проскальзывание: ${reportStatistics.totalSlippage.toFixed(2)}`);
+    console.log(`- Среднее проскальзывание: ${reportStatistics.averageSlippage.toFixed(2)}`);
     console.log('------------------------');
 
 

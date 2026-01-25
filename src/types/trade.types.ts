@@ -88,6 +88,8 @@ export interface TradeStatistics {
   sortinoRatio?: number;
   maxOpenTrades?: number;
   maxExposureAmount?: number;
+  totalSlippage?: number;
+  averageSlippage?: number;
 }
 
 /**

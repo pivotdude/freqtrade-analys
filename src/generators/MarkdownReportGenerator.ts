@@ -1,4 +1,9 @@
-import type { Trade, TradeStatistics, PairStatisticsReport, TradingInfo } from "../types/trade.types";
+import type {
+  Trade,
+  TradeStatistics,
+  PairStatisticsReport,
+  TradingInfo,
+} from "../types/trade.types";
 import { DateFormatter } from "../formatters/DateFormatter";
 
 /**
@@ -22,9 +27,9 @@ export class MarkdownReportGenerator {
     pairStats: PairStatisticsReport[],
     topProfitable: Trade[],
     topLosing: Trade[],
-    tradingInfo: TradingInfo
+    tradingInfo: TradingInfo,
   ): string {
-    let md = '# Отчет по сделкам Freqtrade\n\n';
+    let md = "# Отчет по сделкам Freqtrade\n\n";
 
     md += this.generateTradingInfoSection(tradingInfo);
     md += this.generateStatisticsSection(statistics);
@@ -39,7 +44,7 @@ export class MarkdownReportGenerator {
    * Генерирует секцию с информацией о торговле
    */
   private generateTradingInfoSection(info: TradingInfo): string {
-    let md = '## Информация о торговле\n\n';
+    let md = "## Информация о торговле\n\n";
     md += `- **Стратегия:** ${info.strategy}\n`;
     md += `- **Биржа:** ${info.exchange}\n`;
     md += `- **Режим торговли:** ${info.tradingMode.toUpperCase()}\n`;
@@ -51,8 +56,9 @@ export class MarkdownReportGenerator {
    * Генерирует секцию с общей статистикой
    */
   private generateStatisticsSection(stats: TradeStatistics): string {
-    let md = '## Общая статистика\n\n';
-    md += '*(Метрики прибыльности и производительности рассчитаны только по закрытым сделкам)*\n\n';
+    let md = "## Общая статистика\n\n";
+    md +=
+      "*(Метрики прибыльности и производительности рассчитаны только по закрытым сделкам)*\n\n";
 
     md += `- **Всего сделок:** ${stats.totalTrades}\n`;
     md += `- **Прибыльных:** ${stats.profitableTrades} (${stats.winRate.toFixed(1)}%)\n`;
@@ -61,11 +67,14 @@ export class MarkdownReportGenerator {
     md += `- **Средняя прибыль:** ${stats.avgProfit.toFixed(2)} USDT\n`;
     md += `- **Комиссии:** ${stats.totalFees.toFixed(2)} USDT\n`;
     md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n`;
+    if (stats.profitFactor !== undefined) {
+      md += `- **Profit Factor:** ${stats.profitFactor.toFixed(2)}\n`;
+    }
 
     if (stats.drawdown) {
       md += `- **Макс. просадка:** ${stats.drawdown.maxDrawdown.toFixed(2)}% (${stats.drawdown.maxDrawdownAbs.toFixed(2)} USDT)\n\n`;
     } else {
-      md += '\n';
+      md += "\n";
     }
 
     return md;
@@ -75,7 +84,7 @@ export class MarkdownReportGenerator {
    * Генерирует сделки с их ордерами
    */
   private generateTradesWithOrders(trades: Trade[]): string {
-    let md = '## Детали сделок\n\n';
+    let md = "## Детали сделок\n\n";
 
     for (const trade of trades) {
       md += this.formatTradeSection(trade);
@@ -91,19 +100,21 @@ export class MarkdownReportGenerator {
     const isOpen = trade.is_open === 1;
     const duration = trade.close_date
       ? this.dateFormatter.formatDuration(trade.open_date, trade.close_date)
-      : '-';
+      : "-";
     const openDate = this.dateFormatter.formatDate(trade.open_date);
-    const closeDate = trade.close_date ? this.dateFormatter.formatDate(trade.close_date) : '-';
+    const closeDate = trade.close_date
+      ? this.dateFormatter.formatDate(trade.close_date)
+      : "-";
     const profitPercent = (trade.close_profit || 0) * 100;
     const profitAbs = trade.close_profit_abs || 0;
-    const profitColor = profitAbs >= 0 ? '🟢' : '🔴';
-    const direction = trade.is_short ? '📉' : '📈';
-    const status = isOpen ? '🔵 Открыта' : '✅ Закрыта';
+    const profitColor = profitAbs >= 0 ? "🟢" : "🔴";
+    const direction = trade.is_short ? "📉" : "📈";
+    const status = isOpen ? "🔵 Открыта" : "✅ Закрыта";
 
     let md = `### Сделка #${trade.id} - ${direction} ${trade.pair} (${status})\n\n`;
 
     // Основная информация о сделке
-    md += '**Информация о сделке:**\n\n';
+    md += "**Информация о сделке:**\n\n";
     md += `- **Статус:** ${status}\n`;
     md += `- **Вход:** ${openDate}\n`;
     if (!isOpen) {
@@ -112,7 +123,7 @@ export class MarkdownReportGenerator {
     }
     md += `- **Цена входа:** ${trade.open_rate.toFixed(6)}\n`;
     if (!isOpen) {
-      md += `- **Цена выхода:** ${trade.close_rate?.toFixed(6) || '-'}\n`;
+      md += `- **Цена выхода:** ${trade.close_rate?.toFixed(6) || "-"}\n`;
     }
     md += `- **Сумма:** ${trade.stake_amount.toFixed(2)} USDT\n`;
     if (!isOpen) {
@@ -120,37 +131,41 @@ export class MarkdownReportGenerator {
       const totalFee = (trade.fee_open_cost || 0) + (trade.fee_close_cost || 0);
       md += `- **Комиссия:** ${totalFee.toFixed(2)} USDT (вход: ${(trade.fee_open_cost || 0).toFixed(2)}, выход: ${(trade.fee_close_cost || 0).toFixed(2)})\n`;
       md += `- **Чистая прибыль:** ${(profitAbs - totalFee).toFixed(2)} USDT\n`;
-      md += `- **Причина выхода:** ${trade.exit_reason || '-'}\n`;
+      md += `- **Причина выхода:** ${trade.exit_reason || "-"}\n`;
     } else {
       const openFee = trade.fee_open_cost || 0;
       md += `- **Комиссия входа:** ${openFee.toFixed(2)} USDT\n`;
     }
-    md += `- **Тег входа:** ${trade.enter_tag || '-'}\n\n`;
+    md += `- **Тег входа:** ${trade.enter_tag || "-"}\n\n`;
 
     // Таблица ордеров
     if (trade.orders && trade.orders.length > 0) {
-      md += '**Ордера:**\n\n';
-      md += '| Сторона | Тип | Цена | Средняя | Объем | Исполнено | Стоимость | Дата | Тег |\n';
-      md += '|:--------|:----|:-----|:--------|:------|:----------|:----------|:-----|:----|\n';
+      md += "**Ордера:**\n\n";
+      md +=
+        "| Сторона | Тип | Цена | Средняя | Объем | Исполнено | Стоимость | Дата | Тег |\n";
+      md +=
+        "|:--------|:----|:-----|:--------|:------|:----------|:----------|:-----|:----|\n";
 
       for (const order of trade.orders) {
-        const side = order.ft_order_side === 'buy' ? '🟢 Buy' : '🔴 Sell';
-        const orderType = order.order_type || '-';
+        const side = order.ft_order_side === "buy" ? "🟢 Buy" : "🔴 Sell";
+        const orderType = order.order_type || "-";
         const price = order.price?.toFixed(6) || order.ft_price.toFixed(6);
-        const average = order.average?.toFixed(6) || '-';
+        const average = order.average?.toFixed(6) || "-";
         const amount = order.amount?.toFixed(2) || order.ft_amount.toFixed(2);
-        const filled = order.filled?.toFixed(2) || '-';
-        const cost = order.cost?.toFixed(2) || '-';
+        const filled = order.filled?.toFixed(2) || "-";
+        const cost = order.cost?.toFixed(2) || "-";
         const date = order.order_filled_date
           ? this.dateFormatter.formatDate(order.order_filled_date)
-          : (order.order_date ? this.dateFormatter.formatDate(order.order_date) : '-');
-        const tag = order.ft_order_tag || '-';
+          : order.order_date
+            ? this.dateFormatter.formatDate(order.order_date)
+            : "-";
+        const tag = order.ft_order_tag || "-";
 
         md += `| ${side} | ${orderType} | ${price} | ${average} | ${amount} | ${filled} | ${cost} | ${date} | ${tag} |\n`;
       }
     }
 
-    md += '\n---\n\n';
+    md += "\n---\n\n";
 
     return md;
   }
@@ -158,26 +173,31 @@ export class MarkdownReportGenerator {
   /**
    * Генерирует секцию со статистикой по парам
    */
-  private generatePairStatisticsSection(pairStats: PairStatisticsReport[]): string {
-    let md = '## Анализ по торговым парам\n\n';
-    md += '| Пара | Сделок | Прибыльных | Win Rate | Прибыль |\n';
-    md += '|:-----|:-------|:-----------|:---------|:--------|\n';
+  private generatePairStatisticsSection(
+    pairStats: PairStatisticsReport[],
+  ): string {
+    let md = "## Анализ по торговым парам\n\n";
+    md += "| Пара | Сделок | Прибыльных | Win Rate | Прибыль |\n";
+    md += "|:-----|:-------|:-----------|:---------|:--------|\n";
 
     for (const { pair, stats } of pairStats) {
       const winRate = stats.count > 0 ? (stats.wins / stats.count) * 100 : 0;
       md += `| ${pair} | ${stats.count} | ${stats.wins} | ${winRate.toFixed(1)}% | ${stats.profit.toFixed(2)} USDT |\n`;
     }
 
-    return md + '\n';
+    return md + "\n";
   }
 
   /**
    * Генерирует секцию с лучшими и худшими сделками
    */
-  private generateTopTradesSection(topProfitable: Trade[], topLosing: Trade[]): string {
-    let md = '## Лучшие и худшие сделки\n\n';
+  private generateTopTradesSection(
+    topProfitable: Trade[],
+    topLosing: Trade[],
+  ): string {
+    let md = "## Лучшие и худшие сделки\n\n";
 
-    md += '### 🏆 Топ-3 прибыльных сделок\n\n';
+    md += "### 🏆 Топ-3 прибыльных сделок\n\n";
     for (let i = 0; i < topProfitable.length; i++) {
       const t = topProfitable[i];
       if (t) {
@@ -185,7 +205,7 @@ export class MarkdownReportGenerator {
       }
     }
 
-    md += '\n### 📉 Топ-3 убыточных сделок\n\n';
+    md += "\n### 📉 Топ-3 убыточных сделок\n\n";
     for (let i = 0; i < topLosing.length; i++) {
       const t = topLosing[i];
       if (t) {

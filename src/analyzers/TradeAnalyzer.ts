@@ -23,6 +23,10 @@ export class TradeAnalyzer {
       return sum + openFee + closeFee;
     }, 0);
 
+    const grossProfit = trades.reduce((sum, t) => sum + Math.max(0, (t.close_profit_abs || 0)), 0);
+    const grossLoss = trades.reduce((sum, t) => sum + Math.abs(Math.min(0, (t.close_profit_abs || 0))), 0);
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : 0;
+
     return {
       totalTrades,
       profitableTrades,
@@ -30,7 +34,9 @@ export class TradeAnalyzer {
       totalProfit,
       avgProfit,
       winRate,
-      totalFees
+      totalFees,
+      profitFactor,
+      profitFactor
     };
   }
 

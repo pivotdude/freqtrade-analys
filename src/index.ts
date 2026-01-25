@@ -11,6 +11,7 @@ import { DateFormatter } from "./formatters/DateFormatter";
 async function main() {
   const dbPath = "tradesv3.sqlite";
   const outputPath = "trades_report.md";
+  const initialCapital = 9900; // Начальный капитал для расчета просадки
 
   // Создание экземпляров сервисов (Dependency Injection)
   const databaseService = new DatabaseService(dbPath);
@@ -23,27 +24,51 @@ async function main() {
     console.log("📊 Загрузка сделок из базы данных...");
     const trades = databaseService.getAllTrades();
     const tradingInfo = databaseService.getTradingInfo();
-    const openTrades = trades.filter(t => t.is_open === 1);
-    const closedTrades = trades.filter(t => t.is_open === 0);
-    console.log(`📊 Найдено сделок: ${trades.length} (открытых: ${openTrades.length}, закрытых: ${closedTrades.length})`);
+    const openTrades = trades.filter((t) => t.is_open === 1);
+    const closedTrades = trades.filter((t) => t.is_open === 0);
+    console.log(
+      `📊 Найдено сделок: ${trades.length} (открытых: ${openTrades.length}, закрытых: ${closedTrades.length})`,
+    );
 
-    if (trades.length === 0) {
+    if (closedTrades.length === 0) {
       console.log("⚠️  Нет закрытых сделок для анализа");
       return;
     }
 
     // Анализ данных
     console.log("🔍 Анализ сделок...");
-    const statistics = tradeAnalyzer.calculateStatistics(trades);
-    const pairStats = tradeAnalyzer.calculatePairStatistics(trades);
-    const topProfitable = tradeAnalyzer.getTopProfitable(trades, 3);
-    const topLosing = tradeAnalyzer.getTopLosing(trades, 3);
+    const statistics = tradeAnalyzer.calculateStatistics(closedTrades);
+    const pairStats = tradeAnalyzer.calculatePairStatistics(closedTrades);
+    const topProfitable = tradeAnalyzer.getTopProfitable(closedTrades, 3);
+    const topLosing = tradeAnalyzer.getTopLosing(closedTrades, 3);
+    const drawdown = tradeAnalyzer.calculateMaxDrawdown(
+      closedTrades,
+      initialCapital,
+    );
+    
+    // Создаем отдельный объект для отчета, чтобы представить статистику в желаемом формате
+    const reportStatistics = {
+      ...statistics, // Базовые статистики по закрытым сделкам
+      drawdown: drawdown, // Добавляем данные по просадке
+    };
+
+    // Вывод ключевых метрик в консоль
+    console.log('--- Общая статистика ---');
+    console.log(`- Всего сделок: ${reportStatistics.totalTrades}`);
+    console.log(`- Профитных/Убыточных: ${reportStatistics.profitableTrades}/${reportStatistics.losingTrades}`);
+    console.log(`- Винрейт: ${reportStatistics.winRate.toFixed(2)}%`);
+    console.log(`- Общий профит: ${reportStatistics.totalProfit.toFixed(2)}`);
+    if (reportStatistics.drawdown) {
+      console.log(`- Макс. просадка: ${reportStatistics.drawdown.maxDrawdown.toFixed(2)}% (${reportStatistics.drawdown.maxDrawdownAbs.toFixed(2)})`);
+    }
+    console.log('------------------------');
+
 
     // Генерация отчета
     console.log("📝 Генерация отчета...");
     const markdown = reportGenerator.generate(
       trades,
-      statistics,
+      reportStatistics,
       pairStats,
       topProfitable,
       topLosing,
@@ -53,7 +78,6 @@ async function main() {
     // Сохранение отчета
     await Bun.write(outputPath, markdown);
     console.log(`✅ Отчет сохранён в ${outputPath}`);
-
   } catch (error) {
     console.error("❌ Ошибка:", error);
     throw error;

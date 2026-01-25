@@ -62,16 +62,26 @@ export interface PairStatistics {
 }
 
 /**
+ * Результат расчета просадки
+ */
+export interface Drawdown {
+  maxDrawdown: number; // в процентах
+  maxDrawdownAbs: number; // в абсолютном значении
+  peakBalance: number; // максимальное значение баланса
+}
+
+/**
  * Общая статистика по сделкам
  */
 export interface TradeStatistics {
-  totalTrades: number;
+  totalTrades: number; // Closed trades
   profitableTrades: number;
-  losingTrades: number;
+  losingTrades:number;
   totalProfit: number;
   avgProfit: number;
   winRate: number;
   totalFees: number;
+  drawdown?: Drawdown;
 }
 
 /**

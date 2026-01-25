@@ -1,4 +1,4 @@
-import type { Trade, TradeStatistics, PairStatistics, PairStatisticsReport } from "../types/trade.types";
+import type { Trade, TradeStatistics, PairStatistics, PairStatisticsReport, Drawdown } from "../types/trade.types";
 
 /**
  * Анализатор сделок
@@ -56,6 +56,48 @@ export class TradeAnalyzer {
       pair,
       stats
     }));
+  }
+
+  /**
+   * Рассчитывает максимальную просадку по балансу.
+   * @param trades Массив **закрытых** сделок.
+   * @param initialCapital Начальный капитал.
+   * @returns Объект с данными о просадке.
+   */
+  calculateMaxDrawdown(trades: Trade[], initialCapital: number): Drawdown {
+    // Сортируем сделки по дате закрытия, так как просадка по балансу считается в момент фиксации прибыли/убытка.
+    const sortedTrades = [...trades].sort((a, b) => {
+      if (!a.close_date || !b.close_date) return 0;
+      return new Date(a.close_date).getTime() - new Date(b.close_date).getTime()
+    }
+    );
+
+    let balance = initialCapital;
+    let peakBalance = initialCapital;
+    let maxDrawdownAbs = 0;
+
+    for (const trade of sortedTrades) {
+      if (trade.close_profit_abs) {
+        balance += trade.close_profit_abs;
+      }
+
+      if (balance > peakBalance) {
+        peakBalance = balance;
+      }
+
+      const drawdown = peakBalance - balance;
+      if (drawdown > maxDrawdownAbs) {
+        maxDrawdownAbs = drawdown;
+      }
+    }
+
+    const maxDrawdown = peakBalance > 0 ? (maxDrawdownAbs / peakBalance) * 100 : 0;
+
+    return {
+      maxDrawdown,
+      maxDrawdownAbs,
+      peakBalance
+    };
   }
 
   /**

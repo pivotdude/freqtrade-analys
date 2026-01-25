@@ -52,13 +52,22 @@ export class MarkdownReportGenerator {
    */
   private generateStatisticsSection(stats: TradeStatistics): string {
     let md = '## Общая статистика\n\n';
+    md += '*(Метрики прибыльности и производительности рассчитаны только по закрытым сделкам)*\n\n';
+
     md += `- **Всего сделок:** ${stats.totalTrades}\n`;
     md += `- **Прибыльных:** ${stats.profitableTrades} (${stats.winRate.toFixed(1)}%)\n`;
     md += `- **Убыточных:** ${stats.losingTrades}\n`;
     md += `- **Общая прибыль:** ${stats.totalProfit.toFixed(2)} USDT\n`;
     md += `- **Средняя прибыль:** ${stats.avgProfit.toFixed(2)} USDT\n`;
     md += `- **Комиссии:** ${stats.totalFees.toFixed(2)} USDT\n`;
-    md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n\n`;
+    md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n`;
+
+    if (stats.drawdown) {
+      md += `- **Макс. просадка:** ${stats.drawdown.maxDrawdown.toFixed(2)}% (${stats.drawdown.maxDrawdownAbs.toFixed(2)} USDT)\n\n`;
+    } else {
+      md += '\n';
+    }
+
     return md;
   }
 

@@ -1,55 +1,55 @@
 # Freqtrade Analysis Tool
 
-Инструмент для анализа торговых сделок из базы данных Freqtrade с генерацией подробных markdown отчетов.
+A tool for analyzing Freqtrade trading data from SQLite and generating detailed Markdown reports.
 
-## Особенности
+## Features
 
-- Анализ закрытых сделок из SQLite базы данных Freqtrade
-- Генерация подробных отчетов в формате Markdown
-- Статистика по парам, прибыльности, win rate
-- Архитектура на основе принципов SOLID
-- Написано на TypeScript с использованием Bun
+- Analysis of closed trades from a Freqtrade SQLite database
+- Detailed report generation in Markdown format
+- Pair-level stats, profitability metrics, and win rate
+- SOLID-based architecture
+- Built with TypeScript and Bun
 
-## Структура проекта
+## Project Structure
 
-```
+```text
 src/
-├── analyzers/          # Анализ данных
-├── formatters/         # Форматирование данных
-├── generators/         # Генерация отчетов
-├── services/           # Сервисы для работы с данными
-└── types/              # Типы и интерфейсы TypeScript
+├── analyzers/          # Data analysis
+├── formatters/         # Data formatting
+├── generators/         # Report generation
+├── services/           # Data access services
+└── types/              # TypeScript types and interfaces
 ```
 
-Подробнее об архитектуре смотрите в [ARCHITECTURE.md](./ARCHITECTURE.md)
+For architecture details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## Установка
+## Installation
 
 ```bash
 bun install
 ```
 
-## Конфигурация
+## Configuration
 
-Создайте `.env` на основе `.env.example`:
+Create `.env` from `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Доступные переменные:
+Available variables:
 
-- `DB_PATH` - путь к SQLite базе (по умолчанию `tradesv3.sqlite`)
-- `REPORT_PATH` - путь к выходному отчету (по умолчанию `trades_report.md`)
-- `INITIAL_CAPITAL` - стартовый капитал для риск-метрик (по умолчанию `9900`)
-- `REPORT_LANG` - язык отчета: `en` или `ru` (по умолчанию `en`)
-- `ENABLE_BENCHMARK` - включить расчет Buy & Hold бенчмарка (`true/false`, по умолчанию `true`)
-- `BENCHMARK_PAIR` - пара для бенчмарка (по умолчанию `BTC/USDT`)
-- `EXCHANGE_ID` - биржа для бенчмарка через CCXT (по умолчанию `binance`)
+- `DB_PATH` - path to SQLite DB (default: `tradesv3.sqlite`)
+- `REPORT_PATH` - output report path (default: `trades_report.md`)
+- `INITIAL_CAPITAL` - initial capital for risk metrics (default: `9900`)
+- `REPORT_LANG` - report language: `en` or `ru` (default: `en`)
+- `ENABLE_BENCHMARK` - enable Buy & Hold benchmark (`true/false`, default: `true`)
+- `BENCHMARK_PAIR` - benchmark pair (default: `BTC/USDT`)
+- `EXCHANGE_ID` - exchange id for benchmark via CCXT (default: `binance`)
 
-## CLI аргументы
+## CLI Arguments
 
-Поддерживается приоритет конфигурации: `CLI > .env > defaults`.
+Configuration priority: `CLI > .env > defaults`.
 
 ```bash
 bun run start -- \
@@ -61,26 +61,26 @@ bun run start -- \
   --benchmark BTC/USDT
 ```
 
-Флаги:
+Flags:
 
-- `--db <path>` - путь к БД
-- `--out <path>` - путь к отчету
-- `--capital <number>` - стартовый капитал
-- `--lang <en|ru>` - язык отчета
-- `--exchange <id>` - id биржи (для бенчмарка)
-- `--benchmark [pair]` - включить бенчмарк, опционально указать пару
-- `--no-benchmark` - отключить расчет бенчмарка
-- `--help` - показать справку
+- `--db <path>` - database path
+- `--out <path>` - report path
+- `--capital <number>` - initial capital
+- `--lang <en|ru>` - report language
+- `--exchange <id>` - exchange id (for benchmark)
+- `--benchmark [pair]` - enable benchmark, optionally set pair
+- `--no-benchmark` - disable benchmark calculation
+- `--help` - show help
 
-## Использование
+## Usage
 
-Разместите файл базы данных Freqtrade и запустите:
+Place your Freqtrade database file and run:
 
 ```bash
 bun run start
 ```
 
-Основные команды проекта:
+Core project commands:
 
 ```bash
 bun run start
@@ -89,25 +89,25 @@ bun run build:exe
 bun run test
 ```
 
-Запуск с hot reload:
+Run with hot reload:
 
 ```bash
 bun run dev:hot
 ```
 
-Сборка исполняемого файла:
+Build standalone executable:
 
 ```bash
 bun run build:exe
 ```
 
-Проверка типов:
+Type-check:
 
 ```bash
 bunx tsc --noEmit
 ```
 
-Полный локальный цикл перед PR:
+Full local validation cycle before PR:
 
 ```bash
 bun install
@@ -117,72 +117,72 @@ bun run build
 bun run build:exe
 ```
 
-## CI и Release
+## CI and Release
 
 - CI workflow: `.github/workflows/ci.yml`
-- Проверки запускаются на `pull_request` и `push` в `main` (Linux/macOS/Windows)
-- Release-сборка запускается на событие `release: published`
-- В assets релиза загружаются бинарники:
+- Checks run on `pull_request` and `push` to `main` (Linux/macOS/Windows)
+- Release build runs on `release: published`
+- Release assets include:
   - `freqtrade-analys-linux-x64`
   - `freqtrade-analys-macos-x64`
   - `freqtrade-analys-macos-arm64`
   - `freqtrade-analys-windows-x64.exe`
 
-Пример публикации релиза:
+Example release flow:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
-# Затем создайте GitHub Release для тега v1.0.0 (Publish release)
+# Then create a GitHub Release for tag v1.0.0 (Publish release)
 ```
 
-## Результат
+## Output
 
-После выполнения программы будет создан файл `trades_report.md` со следующей информацией:
+After execution, the tool generates `trades_report.md` with:
 
-- Общая статистика (количество сделок, win rate, общая прибыль)
-- Детальная таблица всех сделок
-- Анализ по торговым парам
-- Топ-3 прибыльных и убыточных сделок
+- Overall statistics (number of trades, win rate, total profit)
+- Detailed table of all trades
+- Per-pair analysis
+- Top-3 profitable and losing trades
 
-## Технологии
+## Tech Stack
 
 - [Bun](https://bun.com) - fast all-in-one JavaScript runtime
 - TypeScript
-- SQLite (встроенный модуль `bun:sqlite`)
+- SQLite (built-in `bun:sqlite` module)
 
-## Архитектура
+## Architecture
 
-Проект следует принципам SOLID:
+The project follows SOLID principles:
 
-- **S** - Single Responsibility: каждый класс отвечает за одну задачу
-- **O** - Open/Closed: легко расширяется без модификации существующего кода
-- **L** - Liskov Substitution: классы можно заменять подклассами
-- **I** - Interface Segregation: интерфейсы разделены по назначению
-- **D** - Dependency Inversion: зависимости инжектируются через конструкторы
+- **S** - Single Responsibility: each class has one focused responsibility
+- **O** - Open/Closed: easy to extend without modifying existing code
+- **L** - Liskov Substitution: classes can be replaced with subtypes
+- **I** - Interface Segregation: interfaces are split by purpose
+- **D** - Dependency Inversion: dependencies are injected via constructors
 
-Подробнее: [ARCHITECTURE.md](./ARCHITECTURE.md)
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for details.
 
 ## Metrics Limitations
 
-- `drawdown` считается только по **закрытым** сделкам, это не полная equity curve по таймсерии.
-- `sharpe` и `sortino` считаются по per-trade returns (на сделку), а не по равномерному временному ряду доходностей.
-- `slippage` считается только по доступным данным ордеров; если часть ордеров/полей отсутствует, метрика неполная.
-- `buy and hold benchmark` зависит от внешних биржевых данных (CCXT API) и может быть недоступен из-за ограничений сети/API.
+- `drawdown` is calculated from **closed** trades only, not a full equity-curve time series.
+- `sharpe` and `sortino` are calculated from per-trade returns, not a uniform time-series return stream.
+- `slippage` is calculated only from available order data; if some order fields are missing, the metric is incomplete.
+- `buy and hold benchmark` depends on external exchange data (CCXT API) and may be unavailable due to network/API limits.
 
-## Публикация в Public
+## Public Repo Notes
 
-В репозитории не должны храниться персональные артефакты трейдов:
+The repository should not include personal trading artifacts:
 
 - `*.sqlite`, `*.sqlite-shm`, `*.sqlite-wal`
 - `trades_report.md`
 
-Если эти файлы уже добавлялись в git, исключите их из индекса (локально файлы останутся):
+If these files were already added to git, remove them from the index (local files stay untouched):
 
 ```bash
 git rm --cached tradesv3.sqlite tradesv3.sqlite-shm tradesv3.sqlite-wal trades_report.md
 ```
 
-## Лицензия
+## License
 
-This project was created using `bun init` in bun v1.3.6.
+This project was created using `bun init` in Bun v1.3.6.

@@ -1,119 +1,119 @@
-# Архитектура проекта Freqtrade Analysis
+# Freqtrade Analysis Project Architecture
 
-Проект реализован с использованием принципов **SOLID** для обеспечения чистоты кода, масштабируемости и легкости тестирования.
+The project is built using **SOLID** principles to keep the code clean, scalable, and easy to test.
 
-## Структура проекта
+## Project Structure
 
-```
+```text
 src/
-├── analyzers/          # Анализ данных
+├── analyzers/          # Data analysis
 │   ├── TradeAnalyzer.ts
 │   └── metrics/
 │       ├── reportMetrics.ts
 │       └── riskMetrics.ts
-├── formatters/         # Форматирование данных
+├── formatters/         # Data formatting
 │   └── DateFormatter.ts
-├── generators/         # Генерация отчетов
+├── generators/         # Report generation
 │   └── MarkdownReportGenerator.ts
-├── services/           # Сервисы для работы с данными
+├── services/           # Data access services
 │   └── DatabaseService.ts
-└── types/              # Типы и интерфейсы
+└── types/              # Types and interfaces
     └── trade.types.ts
 ```
 
-## Применение принципов SOLID
+## SOLID in Practice
 
-### 1. Single Responsibility Principle (Принцип единственной ответственности)
+### 1. Single Responsibility Principle
 
-Каждый класс отвечает только за одну задачу:
+Each class handles one clear responsibility:
 
-- **`DatabaseService`** - работа с базой данных (чтение данных)
-- **`TradeAnalyzer`** - orchestration анализа и координация вызовов метрик
-- **`reportMetrics`** - отчетные метрики (пары, теги, топ сделки)
-- **`riskMetrics`** - риск-метрики (drawdown, Sharpe/Sortino, exposure)
-- **`DateFormatter`** - форматирование дат и временных интервалов
-- **`MarkdownReportGenerator`** - генерация markdown отчетов
+- **`DatabaseService`** - database operations (reading data)
+- **`TradeAnalyzer`** - analysis orchestration and metric coordination
+- **`reportMetrics`** - reporting metrics (pairs, tags, top trades)
+- **`riskMetrics`** - risk metrics (drawdown, Sharpe/Sortino, exposure)
+- **`DateFormatter`** - date and duration formatting
+- **`MarkdownReportGenerator`** - Markdown report generation
 
-### 2. Open/Closed Principle (Принцип открытости/закрытости)
+### 2. Open/Closed Principle
 
-Классы открыты для расширения, но закрыты для модификации:
+Classes are open for extension but closed for modification:
 
-- Можно легко добавить новые форматтеры (например, `JSONFormatter`, `CSVFormatter`) без изменения существующего кода
-- Можно добавить новые анализаторы (например, `AdvancedTradeAnalyzer`) путем наследования от базового класса
-- Можно создать новые генераторы отчетов (HTML, PDF) без изменения логики анализа
+- New formatters can be added easily (for example, `JSONFormatter`, `CSVFormatter`) without changing existing code
+- New analyzers can be introduced (for example, `AdvancedTradeAnalyzer`) by extending base behavior
+- New report generators (HTML, PDF) can be added without changing analysis logic
 
-### 3. Liskov Substitution Principle (Принцип подстановки Барбары Лисков)
+### 3. Liskov Substitution Principle
 
-Классы спроектированы так, что их можно заменять на подклассы без нарушения работы программы:
+Classes are designed so subclasses can replace base classes safely:
 
-- Если создать `AdvancedDateFormatter extends DateFormatter`, он сможет использоваться везде, где используется `DateFormatter`
-- Новые реализации сервисов могут заменять старые без изменения клиентского кода
+- If `AdvancedDateFormatter extends DateFormatter` is created, it should work anywhere `DateFormatter` is used
+- New service implementations can replace existing ones without changing client code
 
-### 4. Interface Segregation Principle (Принцип разделения интерфейса)
+### 4. Interface Segregation Principle
 
-Типы и интерфейсы разделены по назначению:
+Types and interfaces are split by purpose:
 
-- **`Trade`** - данные сделки
-- **`TradeStatistics`** - общая статистика
-- **`PairStatistics`** - статистика по паре
-- **`PairStatisticsReport`** - отчет по паре
+- **`Trade`** - trade data
+- **`TradeStatistics`** - overall statistics
+- **`PairStatistics`** - pair-level statistics
+- **`PairStatisticsReport`** - pair report model
 
-Каждый интерфейс содержит только необходимые поля для конкретной задачи.
+Each interface contains only fields required for its specific use case.
 
-### 5. Dependency Inversion Principle (Принцип инверсии зависимостей)
+### 5. Dependency Inversion Principle
 
-Классы зависят от абстракций, а не от конкретных реализаций:
+Classes depend on abstractions, not concrete implementations:
 
-- **`MarkdownReportGenerator`** принимает `DateFormatter` через конструктор (Dependency Injection)
-- Главная функция `main()` создает все зависимости и передает их в классы
-- Можно легко заменить реализации классов для тестирования (например, использовать mock-объекты)
+- **`MarkdownReportGenerator`** receives `DateFormatter` through its constructor (Dependency Injection)
+- The `main()` function builds dependencies and injects them into classes
+- Implementations can be replaced for testing (for example, mocks)
 
-## Преимущества архитектуры
+## Architecture Benefits
 
-1. **Тестируемость** - каждый класс можно тестировать отдельно
-2. **Расширяемость** - легко добавлять новую функциональность
-3. **Поддерживаемость** - код легко читать и понимать
-4. **Переиспользование** - классы можно использовать в других проектах
-5. **Изоляция изменений** - изменения в одном классе не влияют на другие
+1. **Testability** - each class can be tested independently
+2. **Extensibility** - new functionality is easy to add
+3. **Maintainability** - code is easier to read and reason about
+4. **Reusability** - classes can be reused in other projects
+5. **Change Isolation** - changes in one class have minimal impact on others
 
-## Примеры расширения
+## Extension Examples
 
-### Добавление нового форматтера
+### Add a New Formatter
 
 ```typescript
 export class CSVFormatter {
   formatTradeToCSV(trade: Trade): string {
-    // Реализация
+    // Implementation
   }
 }
 ```
 
-### Добавление нового генератора отчетов
+### Add a New Report Generator
 
 ```typescript
 export class HTMLReportGenerator {
   constructor(private dateFormatter: DateFormatter) {}
 
   generate(trades: Trade[], statistics: TradeStatistics): string {
-    // Генерация HTML отчета
+    // Generate HTML report
   }
 }
 ```
 
-### Добавление нового анализатора
+### Add a New Analyzer
 
 ```typescript
 export class RiskAnalyzer {
   calculateRiskMetrics(trades: Trade[]): RiskMetrics {
-    // Анализ рисков
+    // Risk analysis
   }
 }
 ```
 
-## Запуск проекта
+## Run the Project
 
 ```bash
-bun index.ts
+bun run start
 ```
 
-Результат: файл `trades_report.md` с подробным анализом сделок.
+Output: `trades_report.md` with detailed trade analysis.

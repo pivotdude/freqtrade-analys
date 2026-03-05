@@ -34,7 +34,7 @@ export class MarkdownReportGenerator {
     let md = "# Отчет по сделкам Freqtrade\n\n";
 
     md += this.generateTradingInfoSection(tradingInfo);
-    md += this.generateStatisticsSection(statistics);
+    md += this.generateStatisticsSection(statistics, tradingInfo);
     md += this.generateTradesWithOrders(trades);
     md += this.generatePairStatisticsSection(pairStats);
     md += this.generateEnterTagStatisticsSection(tagStats);
@@ -61,7 +61,10 @@ export class MarkdownReportGenerator {
   /**
    * Генерирует секцию с общей статистикой
    */
-  private generateStatisticsSection(stats: TradeStatistics): string {
+  private generateStatisticsSection(
+    stats: TradeStatistics,
+    tradingInfo: TradingInfo,
+  ): string {
     let md = "## Общая статистика\n\n";
     md +=
       "*(Метрики прибыльности и производительности рассчитаны только по закрытым сделкам)*\n\n";
@@ -69,10 +72,24 @@ export class MarkdownReportGenerator {
     md += `- **Всего сделок:** ${stats.totalTrades}\n`;
     md += `- **Прибыльных:** ${stats.profitableTrades} (${stats.winRate.toFixed(1)}%)\n`;
     md += `- **Убыточных:** ${stats.losingTrades}\n`;
-    md += `- **Общая прибыль:** ${stats.totalProfit.toFixed(2)} USDT\n`;
-    md += `- **Средняя прибыль:** ${stats.avgProfit.toFixed(2)} USDT\n`;
-    md += `- **Комиссии:** ${stats.totalFees.toFixed(2)} USDT\n`;
-    md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n`;
+
+    const initialCapital = tradingInfo.initialCapital;
+    if (initialCapital && initialCapital > 0) {
+      const totalProfitPct = (stats.totalProfit / initialCapital) * 100;
+      const netProfit = stats.totalProfit - stats.totalFees;
+      const netProfitPct = (netProfit / initialCapital) * 100;
+
+      md += `- **Общая прибыль:** ${stats.totalProfit.toFixed(2)} USDT (${totalProfitPct.toFixed(2)}%)\n`;
+      md += `- **Средняя прибыль:** ${stats.avgProfit.toFixed(2)} USDT\n`;
+      md += `- **Комиссии:** ${stats.totalFees.toFixed(2)} USDT\n`;
+      md += `- **Чистая прибыль:** ${netProfit.toFixed(2)} USDT (${netProfitPct.toFixed(2)}%)\n`;
+    } else {
+      md += `- **Общая прибыль:** ${stats.totalProfit.toFixed(2)} USDT\n`;
+      md += `- **Средняя прибыль:** ${stats.avgProfit.toFixed(2)} USDT\n`;
+      md += `- **Комиссии:** ${stats.totalFees.toFixed(2)} USDT\n`;
+      md += `- **Чистая прибыль:** ${(stats.totalProfit - stats.totalFees).toFixed(2)} USDT\n`;
+    }
+
     if (stats.avgFeePct !== undefined) {
       md += `- **Комиссия от суммарной прибыли:** ${stats.avgFeePct.toFixed(2)}%\n`;
       md += `    - *(Общая комиссия прибыльных сделок / общая прибыль. Более точный показатель, чем простое среднее.)*\n`;
@@ -100,11 +117,11 @@ export class MarkdownReportGenerator {
 
     if (stats.sharpeRatio !== undefined) {
       md += `- **Sharpe Ratio:** ${stats.sharpeRatio.toFixed(3)}\n`;
-      md += `    - *(Отношение средней доходности к её риску (волатильности). Чем выше, тем лучше)*\n`
+      md += `    - *(Отношение средней доходности к её риску (волатильности). Чем выше, тем лучше)*\n`;
     }
     if (stats.sortinoRatio !== undefined) {
       md += `- **Sortino Ratio:** ${stats.sortinoRatio.toFixed(3)}\n`;
-      md += `    - *(Похож на Sharpe, но учитывает только риск "плохой" волатильности (убытков). Чем выше, тем лучше)*\n`
+      md += `    - *(Похож на Sharpe, но учитывает только риск "плохой" волатильности (убытков). Чем выше, тем лучше)*\n`;
     }
 
     if (stats.averageSlippage !== undefined) {

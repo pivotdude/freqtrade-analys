@@ -7,7 +7,10 @@
 ```
 src/
 ├── analyzers/          # Анализ данных
-│   └── TradeAnalyzer.ts
+│   ├── TradeAnalyzer.ts
+│   └── metrics/
+│       ├── reportMetrics.ts
+│       └── riskMetrics.ts
 ├── formatters/         # Форматирование данных
 │   └── DateFormatter.ts
 ├── generators/         # Генерация отчетов
@@ -25,7 +28,9 @@ src/
 Каждый класс отвечает только за одну задачу:
 
 - **`DatabaseService`** - работа с базой данных (чтение данных)
-- **`TradeAnalyzer`** - анализ и вычисление статистики по сделкам
+- **`TradeAnalyzer`** - orchestration анализа и координация вызовов метрик
+- **`reportMetrics`** - отчетные метрики (пары, теги, топ сделки)
+- **`riskMetrics`** - риск-метрики (drawdown, Sharpe/Sortino, exposure)
 - **`DateFormatter`** - форматирование дат и временных интервалов
 - **`MarkdownReportGenerator`** - генерация markdown отчетов
 

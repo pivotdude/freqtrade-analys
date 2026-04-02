@@ -3,14 +3,12 @@ import { TradeAnalyzer } from "./analyzers/TradeAnalyzer";
 import { MarkdownReportGenerator } from "./generators/MarkdownReportGenerator";
 import { DateFormatter } from "./formatters/DateFormatter";
 import { CliUsageError, getHelpText, resolveRuntimeConfig } from "./config";
-import { normalizeOutputMode } from "./output/outputMode";
-import { ResultWriter } from "./output/ResultWriter";
 import { MarkdownReportRenderer } from "./renderers/MarkdownReportRenderer";
 import { JsonReportRenderer } from "./renderers/JsonReportRenderer";
 import { ToonReportRenderer } from "./renderers/ToonReportRenderer";
 import type {
   AnalysisReportPayload,
-  ReportContentFormat,
+  ReportOutputFormat,
 } from "./types/report.types";
 import type { TradeStatistics } from "./types/trade.types";
 
@@ -18,8 +16,8 @@ function logInfo(message: string): void {
   console.error(message);
 }
 
-function getRenderer(contentFormat: ReportContentFormat, language: "en" | "ru") {
-  switch (contentFormat) {
+function getRenderer(format: ReportOutputFormat, language: "en" | "ru") {
+  switch (format) {
     case "md": {
       const dateFormatter = new DateFormatter(language);
       const markdownGenerator = new MarkdownReportGenerator(dateFormatter, language);
@@ -41,7 +39,6 @@ async function main() {
   const runtimeConfig = resolveRuntimeConfig(Bun.argv.slice(2));
   const {
     dbPath,
-    reportPath: outputPath,
     format,
     initialCapital,
     capitalMode,
@@ -57,8 +54,6 @@ async function main() {
     ? new (await import("./services/MarketDataService")).MarketDataService(exchangeId)
     : undefined;
   const tradeAnalyzer = new TradeAnalyzer(marketDataProvider, benchmarkPair);
-  const outputMode = normalizeOutputMode(format);
-  const resultWriter = new ResultWriter();
 
   try {
     // Load data
@@ -166,13 +161,10 @@ async function main() {
 
     // Generate report
     logInfo("📝 Rendering report...");
-    const renderer = getRenderer(outputMode.content, reportLanguage);
+    const renderer = getRenderer(format, reportLanguage);
     const renderedContent = renderer.render(reportPayload);
-
-    await resultWriter.write(outputMode.delivery, renderedContent, outputPath);
-    if (outputMode.delivery === "file") {
-      logInfo(`✅ Report saved to ${outputPath}`);
-    }
+    const finalContent = renderedContent.endsWith("\n") ? renderedContent : `${renderedContent}\n`;
+    process.stdout.write(finalContent);
   } finally {
     // Close database connection
     databaseService.close();

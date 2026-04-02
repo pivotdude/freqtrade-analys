@@ -1,11 +1,11 @@
 # Freqtrade Analysis Tool
 
-A tool for analyzing Freqtrade trading data from SQLite and generating reports for files or stdout (agent/pipeline mode).
+A tool for analyzing Freqtrade trading data from SQLite and generating reports to stdout (agent/pipeline mode).
 
 ## Features
 
 - Analysis of closed trades from a Freqtrade SQLite database
-- Multiple output modes: `file`, `md`, `json`, `toon`
+- Multiple stdout output modes: `md`, `json`, `toon`
 - Pair-level stats, profitability metrics, and win rate
 - SOLID-based architecture
 - Built with TypeScript and Bun
@@ -17,7 +17,6 @@ src/
 ├── analyzers/          # Data analysis
 ├── formatters/         # Data formatting
 ├── generators/         # Report generation
-├── output/             # Output mode normalization and writers
 ├── renderers/          # Content renderers (md/json/toon)
 ├── services/           # Data access services
 └── types/              # TypeScript types and interfaces
@@ -42,8 +41,7 @@ cp .env.example .env
 Available variables:
 
 - `DB_PATH` - path to SQLite DB (default: `tradesv3.sqlite`)
-- `REPORT_PATH` - output report path (default: `trades_report.md`)
-- `REPORT_FORMAT` - output format: `file`, `md`, `json`, `toon` (default: `file`)
+- `REPORT_FORMAT` - output format: `md`, `json`, `toon` (default: `md`)
 - `INITIAL_CAPITAL` - capital baseline for percent/risk metrics, accepts a positive number or `auto` (default: `auto`)
 - `REPORT_LANG` - report language: `en` or `ru` (default: `en`)
 - `ENABLE_BENCHMARK` - enable Buy & Hold benchmark (`true/false`, default: `true`)
@@ -57,8 +55,7 @@ Configuration priority: `CLI > .env > defaults`.
 ```bash
 bun run start -- \
   --db tradesv3.sqlite \
-  --format file \
-  --out trades_report.md \
+  --format md \
   --capital auto \
   --lang en \
   --exchange binance \
@@ -68,8 +65,7 @@ bun run start -- \
 Flags:
 
 - `--db <path>` - database path (default: `tradesv3.sqlite`)
-- `--format <file|md|json|toon>` - output format + delivery channel (default: `file`)
-- `--out <path>` - report path for `--format file` (default: `trades_report.md`)
+- `--format <md|json|toon>` - output format to stdout (default: `md`)
 - `--capital <number|auto>` - capital baseline for percent/risk metrics (default: `auto`)
 - `--no-capital` - disable capital-based metrics even if set in env
 - `--lang <en|ru>` - report language (default: `en`)
@@ -86,17 +82,11 @@ Place your Freqtrade database file and run:
 bun run start
 ```
 
-File mode with explicit output path:
-
-```bash
-bun run start -- --format file --out trades_report.md
-```
-
 Agent/pipeline mode to stdout:
 
 ```bash
-bun run start -- --format json --no-benchmark > report.json
 bun run start -- --format md --no-benchmark
+bun run start -- --format json --no-benchmark > report.json
 bun run start -- --format toon --no-benchmark
 ```
 
@@ -158,8 +148,6 @@ git push origin v1.0.0
 
 ## Output
 
-`--format file` writes `trades_report.md` (or `--out` path).
-
 `--format md|json|toon` prints only the final report content to `stdout` (diagnostics go to `stderr`), which is safe for machine parsing and piping.
 
 The report includes:
@@ -201,12 +189,11 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for details.
 The repository should not include personal trading artifacts:
 
 - `*.sqlite`, `*.sqlite-shm`, `*.sqlite-wal`
-- `trades_report.md`
 
 If these files were already added to git, remove them from the index (local files stay untouched):
 
 ```bash
-git rm --cached tradesv3.sqlite tradesv3.sqlite-shm tradesv3.sqlite-wal trades_report.md
+git rm --cached tradesv3.sqlite tradesv3.sqlite-shm tradesv3.sqlite-wal
 ```
 
 ## License

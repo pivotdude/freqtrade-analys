@@ -7,9 +7,7 @@ import type {
 } from "./trade.types";
 import type { ReportLanguage } from "./i18n.types";
 
-export type ReportOutputFormat = "file" | "md" | "json" | "toon";
-export type ReportDeliveryChannel = "file" | "stdout";
-export type ReportContentFormat = "md" | "json" | "toon";
+export type ReportOutputFormat = "md" | "json" | "toon";
 
 export interface AnalysisReportPayload {
   generatedAt: string;
@@ -22,4 +20,3 @@ export interface AnalysisReportPayload {
   topLosing: Trade[];
   tradingInfo: TradingInfo;
 }
-

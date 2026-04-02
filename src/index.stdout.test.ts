@@ -113,6 +113,27 @@ afterEach(() => {
 });
 
 describe("CLI stdout contract", () => {
+  it("uses markdown stdout by default when --format is omitted", () => {
+    const dbPath = createFixtureDatabase();
+    const proc = Bun.spawnSync(
+      ["bun", "src/index.ts", "--db", dbPath, "--no-benchmark"],
+      {
+        cwd: PROJECT_ROOT,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: process.env,
+      },
+    );
+
+    const stdout = decoder.decode(proc.stdout);
+    const stderr = decoder.decode(proc.stderr);
+
+    expect(proc.exitCode).toBe(0);
+    expect(stdout).toContain("# Freqtrade Trades Report");
+    expect(stderr).toContain("Loading trades from database");
+    expect(stdout).not.toContain("Loading trades from database");
+  });
+
   it("writes only report payload to stdout in json mode", () => {
     const dbPath = createFixtureDatabase();
     const proc = Bun.spawnSync(
@@ -136,4 +157,3 @@ describe("CLI stdout contract", () => {
     expect(stdout).not.toContain("Rendering report");
   });
 });
-

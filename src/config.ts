@@ -11,8 +11,7 @@ export class CliUsageError extends Error {
 }
 
 const DEFAULT_DB_PATH = "tradesv3.sqlite";
-const DEFAULT_REPORT_PATH = "trades_report.md";
-const DEFAULT_REPORT_FORMAT: ReportOutputFormat = "file";
+const DEFAULT_REPORT_FORMAT: ReportOutputFormat = "md";
 const DEFAULT_CAPITAL = "auto";
 const DEFAULT_REPORT_LANG: ReportLanguage = "en";
 const DEFAULT_BENCHMARK_PAIR = "BTC/USDT";
@@ -21,7 +20,6 @@ const DEFAULT_EXCHANGE_ID = "binance";
 
 export interface RuntimeConfig {
   dbPath: string;
-  reportPath: string;
   format: ReportOutputFormat;
   initialCapital?: number;
   capitalMode: CapitalMode;
@@ -50,12 +48,12 @@ const parseFormat = (
     return DEFAULT_REPORT_FORMAT;
   }
 
-  if (value === "file" || value === "md" || value === "json" || value === "toon") {
+  if (value === "md" || value === "json" || value === "toon") {
     return value;
   }
 
   throw new CliUsageError(
-    `Invalid value for ${source}: ${value}. Use one of: file, md, json, toon.`,
+    `Invalid value for ${source}: ${value}. Use one of: md, json, toon.`,
   );
 };
 
@@ -94,9 +92,7 @@ export function getHelpText(): string {
 
 Options:
   --db <path>             Path to sqlite database file (default: ${DEFAULT_DB_PATH})
-  --out <path>            Path to output report file (used by --format file, default: ${DEFAULT_REPORT_PATH})
-  --format <file|md|json|toon>
-                          Output format and target (default: ${DEFAULT_REPORT_FORMAT})
+  --format <md|json|toon> Output format to stdout (default: ${DEFAULT_REPORT_FORMAT})
   --capital <amount|auto> Capital baseline for percent/risk metrics (default: ${DEFAULT_CAPITAL})
   --no-capital            Disable capital-based metrics (default: off)
   --lang <en|ru>          Report language (default: ${DEFAULT_REPORT_LANG})
@@ -110,7 +106,6 @@ Priority: CLI flags > .env > defaults`;
 
 const getBaseConfig = (): RuntimeConfig => ({
   dbPath: process.env.DB_PATH ?? DEFAULT_DB_PATH,
-  reportPath: process.env.REPORT_PATH ?? DEFAULT_REPORT_PATH,
   format: parseFormat(process.env.REPORT_FORMAT ?? DEFAULT_REPORT_FORMAT, "REPORT_FORMAT"),
   ...parseCapitalSetting(process.env.INITIAL_CAPITAL ?? DEFAULT_CAPITAL, "INITIAL_CAPITAL"),
   reportLanguage: parseLanguage(process.env.REPORT_LANG ?? DEFAULT_REPORT_LANG),
@@ -135,10 +130,6 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
     switch (arg) {
       case "--db":
         overrides.dbPath = getValue(arg, i);
-        i++;
-        break;
-      case "--out":
-        overrides.reportPath = getValue(arg, i);
         i++;
         break;
       case "--format":

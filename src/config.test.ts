@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { resolveRuntimeConfig } from "./config";
+import { CliUsageError, resolveRuntimeConfig } from "./config";
 
 describe("resolveRuntimeConfig", () => {
   it("uses auto capital baseline by default", () => {
@@ -28,5 +28,11 @@ describe("resolveRuntimeConfig", () => {
 
     expect(config.capitalMode).toBe("none");
     expect(config.initialCapital).toBeUndefined();
+  });
+
+  it("throws a CLI usage error for unknown arguments", () => {
+    expect(() => resolveRuntimeConfig(["-р"])).toThrow(
+      new CliUsageError("Unknown option: -р"),
+    );
   });
 });

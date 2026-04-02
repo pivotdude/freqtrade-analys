@@ -2,7 +2,7 @@ import { DatabaseService } from "./services/DatabaseService";
 import { TradeAnalyzer } from "./analyzers/TradeAnalyzer";
 import { MarkdownReportGenerator } from "./generators/MarkdownReportGenerator";
 import { DateFormatter } from "./formatters/DateFormatter";
-import { resolveRuntimeConfig } from "./config";
+import { CliUsageError, getHelpText, resolveRuntimeConfig } from "./config";
 
 /**
  * Main application function.
@@ -114,7 +114,6 @@ async function main() {
     console.log(`- Average slippage: ${(reportStatistics.averageSlippage ?? 0).toFixed(2)}`);
     console.log("------------------------");
 
-
     // Build complete trading info payload
     const tradingInfo = {
       ...tradingInfoFromDb,
@@ -139,14 +138,22 @@ async function main() {
     // Save report
     await Bun.write(outputPath, markdown);
     console.log(`✅ Report saved to ${outputPath}`);
-  } catch (error) {
-    console.error("❌ Error:", error);
-    throw error;
   } finally {
     // Close database connection
     databaseService.close();
   }
 }
 
+function handleFatalError(error: unknown): never {
+  if (error instanceof CliUsageError) {
+    console.error(`Error: ${error.message}\n`);
+    console.error(getHelpText());
+    process.exit(1);
+  }
+
+  console.error("❌ Error:", error);
+  process.exit(1);
+}
+
 // Run application
-main().catch(console.error);
+main().catch(handleFatalError);

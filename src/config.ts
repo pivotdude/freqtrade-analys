@@ -2,6 +2,13 @@ import type { ReportLanguage } from "./types/i18n.types";
 
 export type CapitalMode = "none" | "manual" | "auto";
 
+export class CliUsageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CliUsageError";
+  }
+}
+
 const DEFAULT_DB_PATH = "tradesv3.sqlite";
 const DEFAULT_REPORT_PATH = "trades_report.md";
 const DEFAULT_CAPITAL = "auto";
@@ -42,6 +49,7 @@ const parseBoolean = (value: string | undefined, fallback: boolean): boolean => 
 
 const parseCapitalSetting = (
   value: string | undefined,
+  source = "--capital",
 ): Pick<RuntimeConfig, "initialCapital" | "capitalMode"> => {
   if (!value) {
     return { capitalMode: "none" };
@@ -56,18 +64,37 @@ const parseCapitalSetting = (
     return { initialCapital: parsed, capitalMode: "manual" };
   }
 
-  throw new Error(`Invalid capital value: ${value}. Use a positive number or "auto".`);
+  throw new CliUsageError(
+    `Invalid value for ${source}: ${value}. Use a positive number or "auto".`,
+  );
 };
 
-const baseConfig: RuntimeConfig = {
+export function getHelpText(): string {
+  return `Usage: bun src/index.ts [options]
+
+Options:
+  --db <path>             Path to sqlite database file (default: ${DEFAULT_DB_PATH})
+  --out <path>            Path to output markdown report (default: ${DEFAULT_REPORT_PATH})
+  --capital <amount|auto> Capital baseline for percent/risk metrics (default: ${DEFAULT_CAPITAL})
+  --no-capital            Disable capital-based metrics (default: off)
+  --lang <en|ru>          Report language (default: ${DEFAULT_REPORT_LANG})
+  --exchange <id>         Exchange id for benchmark data (default: ${DEFAULT_EXCHANGE_ID})
+  --benchmark [pair]      Enable benchmark (default: on, pair ${DEFAULT_BENCHMARK_PAIR})
+  --no-benchmark          Disable benchmark calculation (default: off)
+  --help, -h              Show this help
+
+Priority: CLI flags > .env > defaults`;
+}
+
+const getBaseConfig = (): RuntimeConfig => ({
   dbPath: process.env.DB_PATH ?? DEFAULT_DB_PATH,
   reportPath: process.env.REPORT_PATH ?? DEFAULT_REPORT_PATH,
-  ...parseCapitalSetting(process.env.INITIAL_CAPITAL ?? DEFAULT_CAPITAL),
+  ...parseCapitalSetting(process.env.INITIAL_CAPITAL ?? DEFAULT_CAPITAL, "INITIAL_CAPITAL"),
   reportLanguage: parseLanguage(process.env.REPORT_LANG ?? DEFAULT_REPORT_LANG),
   benchmarkPair: process.env.BENCHMARK_PAIR ?? DEFAULT_BENCHMARK_PAIR,
   enableBenchmark: parseBoolean(process.env.ENABLE_BENCHMARK, DEFAULT_ENABLE_BENCHMARK),
   exchangeId: process.env.EXCHANGE_ID ?? DEFAULT_EXCHANGE_ID,
-};
+});
 
 export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
   const overrides: Partial<RuntimeConfig> = {};
@@ -75,7 +102,7 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
   const getValue = (flag: string, i: number): string => {
     const value = argv[i + 1];
     if (!value || value.startsWith("--")) {
-      throw new Error(`Missing value for ${flag}`);
+      throw new CliUsageError(`Missing value for ${flag}`);
     }
     return value;
   };
@@ -125,27 +152,15 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
         printHelpAndExit();
         break;
       default:
-        throw new Error(`Unknown argument: ${arg}`);
+        throw new CliUsageError(`Unknown option: ${arg}`);
     }
   }
 
+  const baseConfig = getBaseConfig();
   return { ...baseConfig, ...overrides };
 }
 
 function printHelpAndExit(): never {
-  console.log(`Usage: bun src/index.ts [options]
-
-Options:
-  --db <path>             Path to sqlite database file (default: ${DEFAULT_DB_PATH})
-  --out <path>            Path to output markdown report (default: ${DEFAULT_REPORT_PATH})
-  --capital <amount|auto> Capital baseline for percent/risk metrics (default: ${DEFAULT_CAPITAL})
-  --no-capital            Disable capital-based metrics (default: off)
-  --lang <en|ru>          Report language (default: ${DEFAULT_REPORT_LANG})
-  --exchange <id>         Exchange id for benchmark data (default: ${DEFAULT_EXCHANGE_ID})
-  --benchmark [pair]      Enable benchmark (default: on, pair ${DEFAULT_BENCHMARK_PAIR})
-  --no-benchmark          Disable benchmark calculation (default: off)
-  --help, -h              Show this help
-
-Priority: CLI flags > .env > defaults`);
+  console.log(getHelpText());
   process.exit(0);
 }

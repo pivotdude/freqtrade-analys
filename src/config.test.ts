@@ -107,6 +107,11 @@ describe("resolveRuntimeConfig", () => {
     );
   });
 
+  it("accepts --lang values case-insensitively", () => {
+    expect(resolveRuntimeConfig(["--lang", "EN"]).reportLanguage).toBe("en");
+    expect(resolveRuntimeConfig(["--lang", "Ru"]).reportLanguage).toBe("ru");
+  });
+
   it("throws a CLI usage error for empty string runtime values", () => {
     expect(() => resolveRuntimeConfig(["--db", "   "])).toThrow(
       new CliUsageError("Invalid value for --db: value must not be empty."),
@@ -134,10 +139,22 @@ describe("resolveRuntimeConfig", () => {
     );
 
     delete process.env.ENABLE_BENCHMARK;
-    process.env.DB_PATH = "   ";
+    process.env.EXCHANGE_ID = "   ";
     expect(() => resolveRuntimeConfig([])).toThrow(
-      new CliUsageError("Invalid value for DB_PATH: value must not be empty."),
+      new CliUsageError("Invalid value for --exchange: value must not be empty."),
     );
+  });
+
+  it("does not require exchange or benchmark pair when benchmark is disabled", () => {
+    process.env.ENABLE_BENCHMARK = "false";
+    process.env.EXCHANGE_ID = "   ";
+    process.env.BENCHMARK_PAIR = "   ";
+
+    const config = resolveRuntimeConfig([]);
+
+    expect(config.enableBenchmark).toBe(false);
+    expect(config.exchangeId).toBe("");
+    expect(config.benchmarkPair).toBe("");
   });
 
   it("throws a CLI usage error when flag values are missing", () => {

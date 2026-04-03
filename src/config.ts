@@ -43,8 +43,10 @@ const parseLanguage = (
     return DEFAULT_REPORT_LANG;
   }
 
-  if (value === "en" || value === "ru") {
-    return value;
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "en" || normalized === "ru") {
+    return normalized;
   }
 
   throw new CliUsageError(
@@ -140,24 +142,19 @@ const getBaseConfig = (): RuntimeConfig => ({
     process.env.REPORT_LANG ?? DEFAULT_REPORT_LANG,
     "REPORT_LANG",
   ),
-  benchmarkPair: parseNonEmptyString(
-    process.env.BENCHMARK_PAIR ?? DEFAULT_BENCHMARK_PAIR,
-    "BENCHMARK_PAIR",
-  ),
+  benchmarkPair: (process.env.BENCHMARK_PAIR ?? DEFAULT_BENCHMARK_PAIR).trim(),
   enableBenchmark: parseBoolean(process.env.ENABLE_BENCHMARK, DEFAULT_ENABLE_BENCHMARK),
-  exchangeId: parseNonEmptyString(
-    process.env.EXCHANGE_ID ?? DEFAULT_EXCHANGE_ID,
-    "EXCHANGE_ID",
-  ),
+  exchangeId: (process.env.EXCHANGE_ID ?? DEFAULT_EXCHANGE_ID).trim(),
 });
 
 const validateResolvedConfig = (config: RuntimeConfig): RuntimeConfig => {
   const dbPath = parseNonEmptyString(config.dbPath, "--db");
-  const exchangeId = parseNonEmptyString(config.exchangeId, "--exchange");
-  const benchmarkPair = parseNonEmptyString(
-    config.benchmarkPair,
-    "--benchmark",
-  );
+  const exchangeId = config.enableBenchmark
+    ? parseNonEmptyString(config.exchangeId, "--exchange")
+    : config.exchangeId.trim();
+  const benchmarkPair = config.enableBenchmark
+    ? parseNonEmptyString(config.benchmarkPair, "--benchmark")
+    : config.benchmarkPair.trim();
 
   return {
     ...config,

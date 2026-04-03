@@ -18,9 +18,5 @@
   },
   "peerDependencies": {
     "typescript": "^5"
-  },
-  "dependencies": {
-    "@toon-format/toon": "^2.1.0",
-    "protobufjs": "^8.0.0"
   }
 }

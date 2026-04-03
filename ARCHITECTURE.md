@@ -16,9 +16,7 @@ src/
 ├── generators/         # Report generation
 │   └── MarkdownReportGenerator.ts
 ├── renderers/          # Content renderers
-│   ├── MarkdownReportRenderer.ts
-│   ├── JsonReportRenderer.ts
-│   └── ToonReportRenderer.ts
+│   └── MarkdownReportRenderer.ts
 ├── services/           # Data access services
 │   └── DatabaseService.ts
 └── types/              # Types and interfaces
@@ -38,7 +36,7 @@ Each class handles one clear responsibility:
 - **`riskMetrics`** - risk metrics (drawdown, Sharpe/Sortino, exposure)
 - **`DateFormatter`** - date and duration formatting
 - **`MarkdownReportGenerator`** - Markdown report generation
-- **`renderers/*`** - render analysis payload to `md/json/toon`
+- **`renderers/*`** - render analysis payload to Markdown
 
 ### 2. Open/Closed Principle
 
@@ -84,16 +82,6 @@ Classes depend on abstractions, not concrete implementations:
 
 ## Extension Examples
 
-### Add a New Formatter
-
-```typescript
-export class CSVFormatter {
-  formatTradeToCSV(trade: Trade): string {
-    // Implementation
-  }
-}
-```
-
 ### Add a New Report Generator
 
 ```typescript
@@ -122,4 +110,4 @@ export class RiskAnalyzer {
 bun run start
 ```
 
-Output: rendered report in `stdout` (`md`, `json`, or `toon`).
+Output: rendered Markdown report in `stdout`.

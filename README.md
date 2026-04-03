@@ -2,21 +2,18 @@
 
 `freqtrade-analys` is a Bun + TypeScript CLI that reads a Freqtrade SQLite database and prints a trading performance report to `stdout`.
 
-It is designed for both:
-
-- humans (Markdown / Toon format), and
-- automation (JSON output for pipelines, scripts, or downstream tools).
+It is designed for human-readable Markdown reporting while staying scriptable and CI-friendly.
 
 ## Why this project
 
 - Analyze closed trades quickly without launching a full dashboard.
 - Keep report generation scriptable and CI-friendly.
-- Export results in machine-readable or presentation-friendly formats.
+- Export results in presentation-friendly Markdown.
 
 ## Features
 
 - Closed-trade analysis from Freqtrade SQLite data.
-- Output formats: `md`, `json`, `toon`.
+- Output format: `md` (Markdown).
 - Core metrics: win rate, realized profit, pair-level performance.
 - Risk/return metrics: drawdown, Sharpe, Sortino, slippage (when data is available).
 - English and Russian report localization.
@@ -48,7 +45,6 @@ bun run start -- [options]
 ### Options
 
 - `--db <path>`: path to SQLite database (default: `tradesv3.sqlite`)
-- `--format <md|json|toon>`: output format (default: `md`)
 - `--capital <number|auto>`: capital baseline for percent/risk metrics (default: `auto`)
 - `--no-capital`: disable capital-based metrics
 - `--lang <en|ru>`: report language (default: `en`)
@@ -62,7 +58,6 @@ Configuration priority: **CLI > `.env` > defaults**.
 
 ```env
 DB_PATH=tradesv3.sqlite
-REPORT_FORMAT=md
 INITIAL_CAPITAL=9900
 REPORT_LANG=en
 ```
@@ -70,26 +65,22 @@ REPORT_LANG=en
 Variables:
 
 - `DB_PATH`: path to SQLite database file
-- `REPORT_FORMAT`: `md`, `json`, or `toon`
 - `INITIAL_CAPITAL`: positive number or `auto`
 - `REPORT_LANG`: `en` or `ru`
 
 ## Examples
 
 ```bash
-# Markdown report
-bun run start -- --format md
+# Markdown report (default output)
+bun run start
 
-# JSON report for machine consumption
-bun run start -- --format json > report.json
-
-# Toon formatted report in Russian
-bun run start -- --format toon --lang ru
+# Russian Markdown report
+bun run start -- --lang ru
 ```
 
 ## Output contract
 
-When `--format md|json|toon` is used, the tool prints only the final report to `stdout`.
+The tool prints only the final report to `stdout`.
 Diagnostics and errors are written to `stderr`, making `stdout` safe for piping/parsing.
 
 ## Project structure
@@ -99,7 +90,7 @@ src/
 ├── analyzers/          # Trade + metric analysis
 ├── formatters/         # Date/number formatting helpers
 ├── generators/         # Report generation orchestration
-├── renderers/          # md/json/toon renderers
+├── renderers/          # Markdown renderer
 ├── services/           # Database access
 └── types/              # Shared TypeScript types
 ```

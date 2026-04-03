@@ -7,7 +7,6 @@ describe("resolveRuntimeConfig", () => {
   beforeEach(() => {
     for (const key of [
       "DB_PATH",
-      "REPORT_FORMAT",
       "INITIAL_CAPITAL",
       "REPORT_LANG",
     ]) {
@@ -30,12 +29,6 @@ describe("resolveRuntimeConfig", () => {
     }
   });
 
-  it("uses markdown format by default", () => {
-    const config = resolveRuntimeConfig([]);
-
-    expect(config.format).toBe("md");
-  });
-
   it("uses auto capital baseline by default", () => {
     const config = resolveRuntimeConfig([]);
 
@@ -43,10 +36,10 @@ describe("resolveRuntimeConfig", () => {
     expect(config.initialCapital).toBeUndefined();
   });
 
-  it("parses --format values from CLI", () => {
-    expect(resolveRuntimeConfig(["--format", "md"]).format).toBe("md");
-    expect(resolveRuntimeConfig(["--format", "json"]).format).toBe("json");
-    expect(resolveRuntimeConfig(["--format", "toon"]).format).toBe("toon");
+  it("does not support --format option", () => {
+    expect(() => resolveRuntimeConfig(["--format", "md"])).toThrow(
+      new CliUsageError("Unknown option: --format"),
+    );
   });
 
   it("treats --out as unknown option", () => {
@@ -79,14 +72,6 @@ describe("resolveRuntimeConfig", () => {
   it("throws a CLI usage error for unknown arguments", () => {
     expect(() => resolveRuntimeConfig(["-р"])).toThrow(
       new CliUsageError("Unknown option: -р"),
-    );
-  });
-
-  it("throws a CLI usage error for invalid --format", () => {
-    expect(() => resolveRuntimeConfig(["--format", "xml"])).toThrow(
-      new CliUsageError(
-        "Invalid value for --format: xml. Use one of: md, json, toon.",
-      ),
     );
   });
 
@@ -131,9 +116,6 @@ describe("resolveRuntimeConfig", () => {
   it("throws a CLI usage error when flag values are missing", () => {
     expect(() => resolveRuntimeConfig(["--db"])).toThrow(
       new CliUsageError("Missing value for --db"),
-    );
-    expect(() => resolveRuntimeConfig(["--format"])).toThrow(
-      new CliUsageError("Missing value for --format"),
     );
     expect(() => resolveRuntimeConfig(["--capital"])).toThrow(
       new CliUsageError("Missing value for --capital"),

@@ -7,8 +7,6 @@ import type {
 } from "./trade.types";
 import type { ReportLanguage } from "./i18n.types";
 
-export type ReportOutputFormat = "md" | "json" | "toon";
-
 export interface AnalysisReportPayload {
   generatedAt: string;
   language: ReportLanguage;

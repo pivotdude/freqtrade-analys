@@ -39,7 +39,10 @@ tradesv3.*
 *.sqlite-shm
 *.sqlite-wal
 trades_report.md
+freqtrade-analysis
+freqtrade-analysis.exe
 freqtrade-analys
 freqtrade-analys.exe
 
-freqtrade-analys*
+freqtrade-analysis*
+!bin/freqtrade-analysis.js

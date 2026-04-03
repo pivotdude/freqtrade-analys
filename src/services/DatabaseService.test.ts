@@ -11,7 +11,7 @@ const tempDirs: string[] = [];
 function createDatabaseWithTrades(
   trades: Array<{ id: number; openDate: string; strategy: string | null; tradingMode: string | null; exchange: string | null }>,
 ): string {
-  const tempDir = mkdtempSync(join(tmpdir(), "freqtrade-analys-db-"));
+  const tempDir = mkdtempSync(join(tmpdir(), "freqtrade-analysis-db-"));
   tempDirs.push(tempDir);
 
   const dbPath = join(tempDir, "tradesv3.sqlite");

@@ -9,7 +9,7 @@ const decoder = new TextDecoder();
 const tempDirs: string[] = [];
 
 function createFixtureDatabase(): string {
-  const tmpDir = mkdtempSync(join(tmpdir(), "freqtrade-analys-"));
+  const tmpDir = mkdtempSync(join(tmpdir(), "freqtrade-analysis-"));
   tempDirs.push(tmpDir);
   const dbPath = join(tmpDir, "tradesv3.sqlite");
   const db = new Database(dbPath);

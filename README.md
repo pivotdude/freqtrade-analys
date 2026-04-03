@@ -1,6 +1,6 @@
-# freqtrade-analys
+# freqtrade-analysis
 
-`freqtrade-analys` is a Bun + TypeScript CLI that reads a Freqtrade SQLite database and prints a trading performance report to `stdout`.
+`freqtrade-analysis` is a Bun + TypeScript CLI that reads a Freqtrade SQLite database and prints a trading performance report to `stdout`.
 
 It is designed for human-readable Markdown reporting while staying scriptable and CI-friendly.
 
@@ -21,6 +21,7 @@ It is designed for human-readable Markdown reporting while staying scriptable an
 ## Requirements
 
 - [Bun](https://bun.com) 1.3+
+- [npm](https://www.npmjs.com/) (for global install from registry)
 - A Freqtrade SQLite database (`tradesv3.sqlite` by default)
 
 ## Quick start
@@ -36,9 +37,23 @@ cp .env.example .env
 bun run start
 ```
 
+## Global install (npm)
+
+```bash
+npm i -g freqtrade-analysis
+freqtrade-analysis --help
+```
+
+This package uses Bun at runtime, so Bun must be installed on the machine where you run the CLI.
+
 ## CLI usage
 
 ```bash
+freqtrade-analysis [options]
+```
+
+```bash
+# local development run
 bun run start -- [options]
 ```
 
@@ -162,6 +177,17 @@ git rm --cached tradesv3.sqlite tradesv3.sqlite-shm tradesv3.sqlite-wal
 - CI runs on pull requests, pushes to `main`, and version tags (`v*`)
 - CI can be started manually via `workflow_dispatch` for an existing ref (for example `v1.0.0`)
 - Release workflow publishes standalone binaries for major OS targets
+- npm publish workflow: `.github/workflows/npm-publish.yml`
+- npm publish is triggered by GitHub Release `published` event and validates `release.tag_name == v<package.json.version>`
+- npm publish uses `npm publish --tag latest --access public` (set `NPM_TOKEN` in GitHub repository secrets)
+
+### npm release flow
+
+1. Bump `package.json.version` (for example, `1.0.1`).
+2. Commit and push changes to GitHub.
+3. Create and push Git tag `v<version>` (for example, `v1.0.1`).
+4. Publish a GitHub Release from that tag.
+5. GitHub Actions publishes the package to npm with `latest` tag.
 
 ## License
 

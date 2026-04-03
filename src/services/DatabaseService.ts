@@ -53,12 +53,17 @@ export class DatabaseService {
       first_trade_date: string;
     }, []>(`
       SELECT
-        strategy,
-        trading_mode,
-        exchange,
-        MIN(open_date) as first_trade_date
-      FROM trades
-      WHERE strategy IS NOT NULL
+        t.strategy,
+        t.trading_mode,
+        t.exchange,
+        (
+          SELECT MIN(open_date)
+          FROM trades
+          WHERE strategy IS NOT NULL
+        ) AS first_trade_date
+      FROM trades t
+      WHERE t.strategy IS NOT NULL
+      ORDER BY t.open_date ASC, t.id ASC
       LIMIT 1
     `);
 

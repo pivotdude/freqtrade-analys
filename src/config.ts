@@ -1,5 +1,4 @@
 import type { ReportLanguage } from "./types/i18n.types";
-import type { ReportOutputFormat } from "./types/report.types";
 
 export type CapitalMode = "none" | "manual" | "auto";
 
@@ -11,13 +10,11 @@ export class CliUsageError extends Error {
 }
 
 const DEFAULT_DB_PATH = "tradesv3.sqlite";
-const DEFAULT_REPORT_FORMAT: ReportOutputFormat = "md";
 const DEFAULT_CAPITAL = "auto";
 const DEFAULT_REPORT_LANG: ReportLanguage = "en";
 
 export interface RuntimeConfig {
   dbPath: string;
-  format: ReportOutputFormat;
   initialCapital?: number;
   capitalMode: CapitalMode;
   reportLanguage: ReportLanguage;
@@ -56,23 +53,6 @@ const parseLanguage = (
   );
 };
 
-const parseFormat = (
-  value: string | undefined,
-  source = "--format",
-): ReportOutputFormat => {
-  if (!value) {
-    return DEFAULT_REPORT_FORMAT;
-  }
-
-  if (value === "md" || value === "json" || value === "toon") {
-    return value;
-  }
-
-  throw new CliUsageError(
-    `Invalid value for ${source}: ${value}. Use one of: md, json, toon.`,
-  );
-};
-
 const parseCapitalSetting = (
   value: string | undefined,
   source = "--capital",
@@ -100,7 +80,6 @@ export function getHelpText(): string {
 
 Options:
   --db <path>             Path to sqlite database file (default: ${DEFAULT_DB_PATH})
-  --format <md|json|toon> Output format to stdout (default: ${DEFAULT_REPORT_FORMAT})
   --capital <amount|auto> Capital baseline for percent/risk metrics (default: ${DEFAULT_CAPITAL})
   --no-capital            Disable capital-based metrics (default: off)
   --lang <en|ru>          Report language (default: ${DEFAULT_REPORT_LANG})
@@ -114,7 +93,6 @@ const getBaseConfig = (): RuntimeConfig => ({
     process.env.DB_PATH ?? DEFAULT_DB_PATH,
     "DB_PATH",
   ),
-  format: parseFormat(process.env.REPORT_FORMAT ?? DEFAULT_REPORT_FORMAT, "REPORT_FORMAT"),
   ...parseCapitalSetting(process.env.INITIAL_CAPITAL ?? DEFAULT_CAPITAL, "INITIAL_CAPITAL"),
   reportLanguage: parseLanguage(
     process.env.REPORT_LANG ?? DEFAULT_REPORT_LANG,
@@ -146,10 +124,6 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
     switch (arg) {
       case "--db":
         overrides.dbPath = parseNonEmptyString(getValue(arg, i), arg);
-        i++;
-        break;
-      case "--format":
-        overrides.format = parseFormat(getValue(arg, i));
         i++;
         break;
       case "--capital": {

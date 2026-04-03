@@ -4,30 +4,17 @@ import { MarkdownReportGenerator } from "./generators/MarkdownReportGenerator";
 import { DateFormatter } from "./formatters/DateFormatter";
 import { CliUsageError, getHelpText, resolveRuntimeConfig } from "./config";
 import { MarkdownReportRenderer } from "./renderers/MarkdownReportRenderer";
-import { JsonReportRenderer } from "./renderers/JsonReportRenderer";
-import { ToonReportRenderer } from "./renderers/ToonReportRenderer";
-import type {
-  AnalysisReportPayload,
-  ReportOutputFormat,
-} from "./types/report.types";
+import type { AnalysisReportPayload } from "./types/report.types";
 import type { TradeStatistics } from "./types/trade.types";
 
 function logInfo(message: string): void {
   console.error(message);
 }
 
-function getRenderer(format: ReportOutputFormat, language: "en" | "ru") {
-  switch (format) {
-    case "md": {
-      const dateFormatter = new DateFormatter(language);
-      const markdownGenerator = new MarkdownReportGenerator(dateFormatter, language);
-      return new MarkdownReportRenderer(markdownGenerator);
-    }
-    case "json":
-      return new JsonReportRenderer();
-    case "toon":
-      return new ToonReportRenderer();
-  }
+function getRenderer(language: "en" | "ru") {
+  const dateFormatter = new DateFormatter(language);
+  const markdownGenerator = new MarkdownReportGenerator(dateFormatter, language);
+  return new MarkdownReportRenderer(markdownGenerator);
 }
 
 /**
@@ -39,7 +26,6 @@ async function main() {
   const runtimeConfig = resolveRuntimeConfig(Bun.argv.slice(2));
   const {
     dbPath,
-    format,
     initialCapital,
     capitalMode,
     reportLanguage,
@@ -152,7 +138,7 @@ async function main() {
 
     // Generate report
     logInfo("📝 Rendering report...");
-    const renderer = getRenderer(format, reportLanguage);
+    const renderer = getRenderer(reportLanguage);
     const renderedContent = renderer.render(reportPayload);
     const finalContent = renderedContent.endsWith("\n") ? renderedContent : `${renderedContent}\n`;
     process.stdout.write(finalContent);

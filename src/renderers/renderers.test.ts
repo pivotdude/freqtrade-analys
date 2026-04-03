@@ -1,9 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { DateFormatter } from "../formatters/DateFormatter";
 import { MarkdownReportGenerator } from "../generators/MarkdownReportGenerator";
-import { JsonReportRenderer } from "./JsonReportRenderer";
 import { MarkdownReportRenderer } from "./MarkdownReportRenderer";
-import { ToonReportRenderer } from "./ToonReportRenderer";
 import type { AnalysisReportPayload } from "../types/report.types";
 import type { Trade } from "../types/trade.types";
 
@@ -84,23 +82,5 @@ describe("report renderers", () => {
     expect(result).toContain("# Freqtrade Trades Report");
     expect(result).toContain("## Overall Statistics");
     expect(result).toContain("Trade #1");
-  });
-
-  it("renders pretty JSON from unified payload", () => {
-    const renderer = new JsonReportRenderer();
-    const result = renderer.render(createPayload());
-
-    expect(result).toStartWith("{\n");
-    expect(result).toContain('"generatedAt": "2026-04-03T00:00:00.000Z"');
-    expect(result).toContain('"statistics": {');
-  });
-
-  it("renders toon format from unified payload", () => {
-    const renderer = new ToonReportRenderer();
-    const result = renderer.render(createPayload());
-
-    expect(result).toContain("generatedAt:");
-    expect(result).toContain("language: en");
-    expect(result).toContain("statistics:");
   });
 });

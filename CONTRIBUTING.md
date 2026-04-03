@@ -1,6 +1,6 @@
-# Contributing to freqtrade-analys
+# Contributing to freqtrade-analysis
 
-Thanks for your interest in contributing to **freqtrade-analys**.
+Thanks for your interest in contributing to **freqtrade-analysis**.
 
 ## Ways to contribute
 

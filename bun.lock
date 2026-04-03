@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "freqtrade-analys",
+      "name": "freqtrade-analysis",
       "devDependencies": {
         "@types/bun": "latest",
       },

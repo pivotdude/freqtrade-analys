@@ -76,7 +76,7 @@ const parseCapitalSetting = (
 };
 
 export function getHelpText(): string {
-  return `Usage: bun src/index.ts [options]
+  return `Usage: freqtrade-analysis [options]
 
 Options:
   --db <path>             Path to sqlite database file (default: ${DEFAULT_DB_PATH})

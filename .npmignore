@@ -1,0 +1,9 @@
+src/**/*.test.ts
+tradesv3.*
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+freqtrade-analysis
+freqtrade-analysis.exe
+freqtrade-analys
+freqtrade-analys.exe

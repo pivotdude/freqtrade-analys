@@ -88,11 +88,11 @@ jobs:
         run: |
           mkdir -p release-assets
 
-          SOURCE="freqtrade-analys"
+          SOURCE="freqtrade-analysis"
           EXT=""
           if [ "${{ runner.os }}" = "Windows" ]; then
-            if [ -f "freqtrade-analys.exe" ]; then
-              SOURCE="freqtrade-analys.exe"
+            if [ -f "freqtrade-analysis.exe" ]; then
+              SOURCE="freqtrade-analysis.exe"
               EXT=".exe"
             fi
           fi
@@ -103,7 +103,7 @@ jobs:
             exit 1
           fi
 
-          ASSET_PATH="release-assets/freqtrade-analys-${{ matrix.asset_name }}${EXT}"
+          ASSET_PATH="release-assets/freqtrade-analysis-${{ matrix.asset_name }}${EXT}"
           mv "${SOURCE}" "${ASSET_PATH}"
           echo "ASSET_PATH=${ASSET_PATH}" >> "${GITHUB_ENV}"
 

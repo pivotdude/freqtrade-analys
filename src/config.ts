@@ -29,9 +29,31 @@ const parseNumber = (value: string | undefined): number | undefined => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 };
 
-const parseLanguage = (value: string | undefined): ReportLanguage => {
-  if (value === "ru") return "ru";
-  return "en";
+const parseNonEmptyString = (value: string, source: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new CliUsageError(`Invalid value for ${source}: value must not be empty.`);
+  }
+  return trimmed;
+};
+
+const parseLanguage = (
+  value: string | undefined,
+  source = "--lang",
+): ReportLanguage => {
+  if (!value) {
+    return DEFAULT_REPORT_LANG;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "en" || normalized === "ru") {
+    return normalized;
+  }
+
+  throw new CliUsageError(
+    `Invalid value for ${source}: ${value}. Use one of: en, ru.`,
+  );
 };
 
 const parseFormat = (
@@ -88,11 +110,25 @@ Priority: CLI flags > .env > defaults`;
 }
 
 const getBaseConfig = (): RuntimeConfig => ({
-  dbPath: process.env.DB_PATH ?? DEFAULT_DB_PATH,
+  dbPath: parseNonEmptyString(
+    process.env.DB_PATH ?? DEFAULT_DB_PATH,
+    "DB_PATH",
+  ),
   format: parseFormat(process.env.REPORT_FORMAT ?? DEFAULT_REPORT_FORMAT, "REPORT_FORMAT"),
   ...parseCapitalSetting(process.env.INITIAL_CAPITAL ?? DEFAULT_CAPITAL, "INITIAL_CAPITAL"),
-  reportLanguage: parseLanguage(process.env.REPORT_LANG ?? DEFAULT_REPORT_LANG),
+  reportLanguage: parseLanguage(
+    process.env.REPORT_LANG ?? DEFAULT_REPORT_LANG,
+    "REPORT_LANG",
+  ),
 });
+
+const validateResolvedConfig = (config: RuntimeConfig): RuntimeConfig => {
+  const dbPath = parseNonEmptyString(config.dbPath, "--db");
+  return {
+    ...config,
+    dbPath,
+  };
+};
 
 export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
   const overrides: Partial<RuntimeConfig> = {};
@@ -109,7 +145,7 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
     const arg = argv[i];
     switch (arg) {
       case "--db":
-        overrides.dbPath = getValue(arg, i);
+        overrides.dbPath = parseNonEmptyString(getValue(arg, i), arg);
         i++;
         break;
       case "--format":
@@ -126,7 +162,7 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
         overrides.capitalMode = "none";
         break;
       case "--lang":
-        overrides.reportLanguage = parseLanguage(getValue(arg, i));
+        overrides.reportLanguage = parseLanguage(getValue(arg, i), arg);
         i++;
         break;
       case "--help":
@@ -139,7 +175,7 @@ export function resolveRuntimeConfig(argv: string[]): RuntimeConfig {
   }
 
   const baseConfig = getBaseConfig();
-  return { ...baseConfig, ...overrides };
+  return validateResolvedConfig({ ...baseConfig, ...overrides });
 }
 
 function printHelpAndExit(): never {

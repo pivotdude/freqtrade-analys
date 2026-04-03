@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { TradeAnalyzer } from "./TradeAnalyzer";
-import type { Trade } from "../types/trade.types";
+import type { Order, Trade } from "../types/trade.types";
 
 function createTrade(overrides: Partial<Trade>): Trade {
   return {
@@ -26,6 +26,31 @@ function createTrade(overrides: Partial<Trade>): Trade {
     fee_open_cost: 1,
     fee_close: null,
     fee_close_cost: 1,
+    ...overrides,
+  };
+}
+
+function createOrder(overrides: Partial<Order>): Order {
+  return {
+    id: 1,
+    ft_trade_id: 1,
+    ft_order_side: "buy",
+    ft_pair: "BTC/USDT",
+    ft_is_open: 0,
+    ft_amount: 1,
+    ft_price: 100,
+    order_id: "order-1",
+    status: "closed",
+    order_type: "limit",
+    side: "buy",
+    price: 100,
+    average: 100,
+    amount: 1,
+    filled: 1,
+    cost: 100,
+    order_date: "2024-01-01T00:00:00Z",
+    order_filled_date: "2024-01-01T00:00:01Z",
+    ft_order_tag: "entry",
     ...overrides,
   };
 }
@@ -181,5 +206,162 @@ describe("TradeAnalyzer", () => {
     ];
 
     expect(analyzer.estimateCapitalBaseline(trades)).toBe(1500);
+  });
+
+  it("calculates exposure metrics from full trade set when provided", async () => {
+    const analyzer = new TradeAnalyzer();
+    const closedTrades: Trade[] = [
+      createTrade({
+        id: 1,
+        open_date: "2024-01-01T00:00:00Z",
+        close_date: "2024-01-01T02:00:00Z",
+        stake_amount: 1000,
+      }),
+    ];
+    const allTrades: Trade[] = [
+      ...closedTrades,
+      createTrade({
+        id: 2,
+        open_date: "2024-01-01T01:00:00Z",
+        close_date: null,
+        close_rate: null,
+        close_profit: null,
+        close_profit_abs: null,
+        exit_reason: null,
+        is_open: 1,
+        stake_amount: 500,
+        fee_close_cost: null,
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(closedTrades, allTrades);
+
+    expect(stats.totalTrades).toBe(1);
+    expect(stats.maxOpenTrades).toBe(2);
+    expect(stats.maxExposureAmount).toBe(1500);
+  });
+
+  it("keeps closed-trade profit metrics while deriving exposure from open trades", async () => {
+    const analyzer = new TradeAnalyzer();
+    const closedTrades: Trade[] = [
+      createTrade({
+        id: 1,
+        close_profit_abs: 120,
+        open_date: "2024-01-01T00:00:00Z",
+        close_date: "2024-01-01T02:00:00Z",
+        stake_amount: 1000,
+      }),
+    ];
+    const exposureTrades: Trade[] = [
+      ...closedTrades,
+      createTrade({
+        id: 2,
+        open_date: "2024-01-01T01:00:00Z",
+        close_date: null,
+        close_rate: null,
+        close_profit: null,
+        close_profit_abs: null,
+        exit_reason: null,
+        is_open: 1,
+        stake_amount: 700,
+        fee_close_cost: null,
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(closedTrades, exposureTrades);
+
+    expect(stats.totalTrades).toBe(1);
+    expect(stats.totalProfit).toBe(120);
+    expect(stats.maxOpenTrades).toBe(2);
+    expect(stats.maxExposureAmount).toBe(1700);
+  });
+
+  it("calculates direction-aware slippage for long and short entries", async () => {
+    const analyzer = new TradeAnalyzer();
+    const trades: Trade[] = [
+      createTrade({
+        id: 1,
+        is_short: 0,
+        orders: [createOrder({ ft_order_side: "buy", ft_price: 100, average: 101, filled: 1 })],
+      }),
+      createTrade({
+        id: 2,
+        is_short: 1,
+        orders: [createOrder({ ft_order_side: "sell", side: "sell", ft_price: 100, average: 99, filled: 1 })],
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(trades);
+
+    expect(stats.totalSlippage).toBeCloseTo(2, 10);
+    expect(stats.averageSlippage).toBeCloseTo(1, 10);
+  });
+
+  it("handles partial fills and missing average by using order cost/filled", async () => {
+    const analyzer = new TradeAnalyzer();
+    const trades: Trade[] = [
+      createTrade({
+        id: 1,
+        is_short: 0,
+        orders: [
+          createOrder({ id: 11, ft_order_side: "buy", ft_price: 100, average: null, filled: 0.4, cost: 40.4 }),
+          createOrder({ id: 12, ft_order_side: "buy", ft_price: 100, average: 101, filled: 0.6, cost: 60.6 }),
+          createOrder({ id: 13, ft_order_side: "buy", ft_price: 100, average: null, filled: null, cost: null, amount: null, price: null }),
+        ],
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(trades);
+
+    expect(stats.totalSlippage).toBeCloseTo(1, 10);
+    expect(stats.averageSlippage).toBeCloseTo(1, 10);
+  });
+
+  it("ignores non-filled orders even when limit price and amount are present", async () => {
+    const analyzer = new TradeAnalyzer();
+    const trades: Trade[] = [
+      createTrade({
+        id: 1,
+        is_short: 0,
+        orders: [
+          createOrder({ id: 21, ft_order_side: "buy", ft_price: 100, average: 101, filled: 1 }),
+          createOrder({
+            id: 22,
+            ft_order_side: "buy",
+            ft_price: 100,
+            average: null,
+            filled: null,
+            cost: null,
+            amount: 5,
+            price: 98,
+            status: "open",
+          }),
+        ],
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(trades);
+
+    expect(stats.totalSlippage).toBeCloseTo(1, 10);
+    expect(stats.averageSlippage).toBeCloseTo(1, 10);
+  });
+
+  it("ignores non-entry-side fills when calculating slippage", async () => {
+    const analyzer = new TradeAnalyzer();
+    const trades: Trade[] = [
+      createTrade({
+        id: 1,
+        is_short: 0,
+        orders: [
+          createOrder({ id: 31, ft_order_side: "buy", ft_price: 100, average: 101, filled: 1 }),
+          createOrder({ id: 32, ft_order_side: "sell", side: "sell", ft_price: 120, average: 90, filled: 1 }),
+        ],
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(trades);
+
+    expect(stats.totalSlippage).toBeCloseTo(1, 10);
+    expect(stats.averageSlippage).toBeCloseTo(1, 10);
   });
 });

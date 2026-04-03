@@ -282,4 +282,33 @@ describe("TradeAnalyzer", () => {
     expect(stats.totalSlippage).toBeCloseTo(1, 10);
     expect(stats.averageSlippage).toBeCloseTo(1, 10);
   });
+
+  it("ignores non-filled orders even when limit price and amount are present", async () => {
+    const analyzer = new TradeAnalyzer();
+    const trades: Trade[] = [
+      createTrade({
+        id: 1,
+        is_short: 0,
+        orders: [
+          createOrder({ id: 21, ft_order_side: "buy", ft_price: 100, average: 101, filled: 1 }),
+          createOrder({
+            id: 22,
+            ft_order_side: "buy",
+            ft_price: 100,
+            average: null,
+            filled: null,
+            cost: null,
+            amount: 5,
+            price: 98,
+            status: "open",
+          }),
+        ],
+      }),
+    ];
+
+    const stats = await analyzer.calculateStatistics(trades);
+
+    expect(stats.totalSlippage).toBeCloseTo(1, 10);
+    expect(stats.averageSlippage).toBeCloseTo(1, 10);
+  });
 });

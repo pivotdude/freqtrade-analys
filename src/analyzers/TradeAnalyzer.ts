@@ -185,15 +185,13 @@ export class TradeAnalyzer {
 
     const executedPrice =
       (order.average && order.average > 0 && order.average)
-      || ((order.cost && order.cost > 0 && order.filled && order.filled > 0) ? order.cost / order.filled : undefined)
-      || (order.price && order.price > 0 ? order.price : undefined);
+      || ((order.cost && order.cost > 0 && order.filled && order.filled > 0) ? order.cost / order.filled : undefined);
     if (!executedPrice) {
       return undefined;
     }
 
     const executedAmount =
       (order.filled && order.filled > 0 && order.filled)
-      || (order.amount && order.amount > 0 ? order.amount : undefined)
       || ((order.cost && order.cost > 0) ? order.cost / executedPrice : undefined);
     if (!executedAmount) {
       return undefined;

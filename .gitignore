@@ -46,3 +46,4 @@ freqtrade-analys.exe
 
 freqtrade-analysis*
 !bin/freqtrade-analysis.js
+.openclaude-profile.json

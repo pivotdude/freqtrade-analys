@@ -1,6 +1,6 @@
 {
   "name": "freqtrade-analysis",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "CLI for analyzing Freqtrade SQLite trades and printing markdown reports",
   "type": "module",
   "bin": {
@@ -34,5 +34,9 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "latest"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/pivotdude/freqtrade-analysis/issues"
+  },
+  "repository": "github:pivotdude/freqtrade-analysis"
 }
